@@ -10,14 +10,14 @@ This repository is in early implementation. The current build includes the frame
 
 ## Packages
 
-- `@popright/core`
+- `popright`
 - `@popright/react`
 
 ## Basic Usage
 
 ```ts
-import { createContextMenu } from "@popright/core";
-import "@popright/core/styles.css";
+import { createContextMenu } from "popright";
+import "popright/styles.css";
 
 const menu = createContextMenu(document.querySelector("#file-row")!, {
   items: [

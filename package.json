@@ -2,6 +2,7 @@
   "name": "popright-workspace",
   "private": true,
   "type": "module",
+  "packageManager": "npm@11",
   "workspaces": [
     "packages/*",
     "examples/*"

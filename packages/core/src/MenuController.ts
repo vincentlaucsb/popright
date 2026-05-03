@@ -8,10 +8,31 @@ interface OpenCandidate {
   registeredAt: number;
 }
 
+/**
+ * Coordinates all root context menus that share a document-level interaction space.
+ *
+ * The controller owns the "only one active root menu" invariant. Individual
+ * `ContextMenu` instances own rendering and local state, but every public open
+ * request must pass through this object so nested or overlapping targets do not
+ * flicker competing menus open and closed during the same native event.
+ */
 export class MenuController {
+  /** Live root menus registered with this controller; submenus are intentionally excluded. */
   #menus = new Set<ContextMenu>();
+
+  /** The one root menu currently allowed to own global listeners and focus restoration. */
   #activeMenu: ContextMenu | null = null;
+
+  /** Monotonic registration order used as the tie-breaker for equally specific targets. */
   #registeredCounter = 0;
+
+  /**
+   * Per-native-event open candidates.
+   *
+   * Multiple registered targets can observe the same bubbling `contextmenu`
+   * event. We collect candidates until the current event turn finishes, then
+   * choose the most specific target once all listeners have had a chance to run.
+   */
   #eventCandidates = new WeakMap<Event, OpenCandidate[]>();
 
   register(menu: ContextMenu): void {
@@ -42,6 +63,11 @@ export class MenuController {
     if (!group) {
       group = [];
       this.#eventCandidates.set(event, group);
+      /**
+       * The microtask boundary is the arbitration window for one native event.
+       * It lets parent and child listeners both request an open before we pick
+       * a winner, which avoids requiring users to stop propagation manually.
+       */
       queueMicrotask(() => {
         const candidates = this.#eventCandidates.get(event);
         this.#eventCandidates.delete(event);
@@ -84,6 +110,12 @@ export class MenuController {
         menu,
         input: {
           ...source,
+          /**
+           * Broad menus such as a body-level fallback can request first. When a
+           * more specific registered target contains the event target, the
+           * eventual open input must point at that specific target so dynamic
+           * item resolvers receive the context users expect.
+           */
           target: menu.getClosestTarget(event.target) ?? source.target,
           triggerEvent: event
         },

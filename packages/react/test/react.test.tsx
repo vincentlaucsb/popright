@@ -3,13 +3,29 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ContextMenuInstance, ContextMenuOptions, OpenInput } from "@popright/core";
+import type { ContextMenuInstance, ContextMenuOptions, OpenInput } from "popright";
 import * as React from "react";
-import { ContextMenu, useContextMenu } from "../src/index.js";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuHeader,
+  ContextMenuItem,
+  ContextMenuItems,
+  ContextMenuSeparator,
+  ContextMenuSubmenu,
+  ContextMenuSubmenuContent,
+  ContextMenuSubmenuTrigger,
+  ContextMenuTrigger,
+  useContextMenu
+} from "../src/index.js";
 
 const createContextMenuMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@popright/core", () => ({
+vi.mock("popright", () => ({
+  createContextMenu: createContextMenuMock
+}));
+
+vi.mock("../../core/dist/index.js", () => ({
   createContextMenu: createContextMenuMock
 }));
 
@@ -190,6 +206,167 @@ describe("ContextMenu", () => {
 
     expect(button?.dataset.album).toBe("ride");
     expect(onClick).toHaveBeenCalledOnce();
+
+    unmount(root, container);
+  });
+
+  it("normalizes compositional content and appends data-driven items by default", () => {
+    const instance = createInstance();
+    createContextMenuMock.mockReturnValue(instance);
+    const onSelect = vi.fn();
+
+    const { container, root } = render(
+      <ContextMenu id="resume-menu" items={[{ id: "schema", label: "Schema Action" }]}>
+        <ContextMenuTrigger asChild context={{ nodeId: "node-1" }}>
+          <button>Actions</button>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuHeader>Section</ContextMenuHeader>
+          <ContextMenuItem id="edit" onSelect={onSelect}>
+            Edit
+          </ContextMenuItem>
+          <ContextMenuSeparator />
+          <ContextMenuItems items={[{ id: "parent", label: "Select Parent" }]} />
+        </ContextMenuContent>
+      </ContextMenu>
+    );
+
+    const button = container.querySelector("button");
+    expect(createContextMenuMock).toHaveBeenCalledWith(button, {
+      id: "resume-menu",
+      context: { nodeId: "node-1" },
+      trigger: undefined,
+      items: [
+        { type: "header", label: "Section", align: undefined, hidden: undefined, className: undefined, style: undefined },
+        { id: "edit", label: "Edit", onSelect },
+        { type: "separator", hidden: undefined },
+        { id: "parent", label: "Select Parent" },
+        { id: "schema", label: "Schema Action" }
+      ]
+    });
+
+    unmount(root, container);
+  });
+
+  it("supports data prepend and content id precedence", () => {
+    const instance = createInstance();
+    createContextMenuMock.mockReturnValue(instance);
+
+    const { container, root } = render(
+      <ContextMenu id="root-id" items={[{ id: "data", label: "Data" }]} itemMergeMode="prepend">
+        <ContextMenuTrigger asChild>
+          <button>Actions</button>
+        </ContextMenuTrigger>
+        <ContextMenuContent id="content-id">
+          <ContextMenuItem>Composed</ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+    );
+
+    const button = container.querySelector("button");
+    expect(createContextMenuMock).toHaveBeenCalledWith(button, {
+      id: "content-id",
+      trigger: undefined,
+      context: undefined,
+      items: [
+        { id: "data", label: "Data" },
+        { id: "composed", label: "Composed" }
+      ]
+    });
+
+    unmount(root, container);
+  });
+
+  it("supports replacing composition with data-driven items", () => {
+    const instance = createInstance();
+    createContextMenuMock.mockReturnValue(instance);
+
+    const { container, root } = render(
+      <ContextMenu items={[{ id: "data", label: "Data" }]} itemMergeMode="replace-with-data">
+        <ContextMenuTrigger asChild>
+          <button>Actions</button>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem>Composed</ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+    );
+
+    const button = container.querySelector("button");
+    expect(createContextMenuMock).toHaveBeenCalledWith(button, {
+      id: undefined,
+      trigger: undefined,
+      context: undefined,
+      items: [{ id: "data", label: "Data" }]
+    });
+
+    unmount(root, container);
+  });
+
+  it("normalizes submenu composition into child items", () => {
+    const instance = createInstance();
+    createContextMenuMock.mockReturnValue(instance);
+
+    const { container, root } = render(
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <button>Actions</button>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuSubmenu>
+            <ContextMenuSubmenuTrigger>More</ContextMenuSubmenuTrigger>
+            <ContextMenuSubmenuContent>
+              <ContextMenuItem>Details</ContextMenuItem>
+            </ContextMenuSubmenuContent>
+          </ContextMenuSubmenu>
+        </ContextMenuContent>
+      </ContextMenu>
+    );
+
+    const button = container.querySelector("button");
+    expect(createContextMenuMock).toHaveBeenCalledWith(button, {
+      id: undefined,
+      trigger: undefined,
+      context: undefined,
+      items: [
+        {
+          type: "submenu",
+          id: "more",
+          label: "More",
+          items: [{ id: "details", label: "Details" }]
+        }
+      ]
+    });
+
+    unmount(root, container);
+  });
+
+  it("disables trigger wiring without suppressing the child contextmenu handler", () => {
+    const instance = createInstance();
+    createContextMenuMock.mockReturnValue(instance);
+    const onContextMenu = vi.fn();
+
+    const { container, root } = render(
+      <ContextMenu>
+        <ContextMenuTrigger asChild disabled onContextMenu={onContextMenu}>
+          <button>Actions</button>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem>Composed</ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+    );
+
+    const button = container.querySelector("button");
+    expect(createContextMenuMock).toHaveBeenCalledWith(button, {
+      id: undefined,
+      trigger: "manual",
+      context: undefined,
+      items: [{ id: "composed", label: "Composed" }]
+    });
+
+    button?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+    expect(onContextMenu).toHaveBeenCalledOnce();
 
     unmount(root, container);
   });

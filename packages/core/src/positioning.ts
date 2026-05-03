@@ -16,6 +16,13 @@ export interface MenuPosition {
   top: number;
 }
 
+/**
+ * Computes final root-menu coordinates inside the viewport.
+ *
+ * Fixed positioning uses viewport coordinates directly. Absolute positioning
+ * converts the same resolved viewport position back into document coordinates
+ * by adding scroll offsets.
+ */
 export function computeMenuPosition(input: MenuPositionInput): MenuPosition {
   const padding = Math.max(0, input.padding);
   const left = resolveAxisPosition(input.preferredLeft, input.width, input.viewportWidth, padding);
@@ -31,6 +38,13 @@ export function computeMenuPosition(input: MenuPositionInput): MenuPosition {
   return { left, top };
 }
 
+/**
+ * Resolves one axis with simple flip-then-clamp behavior.
+ *
+ * The menu first tries to open at the requested pointer coordinate. If it would
+ * overflow and there is room before the pointer, it flips to the opposite side;
+ * otherwise it clamps within the padded viewport.
+ */
 export function resolveAxisPosition(
   preferredStart: number,
   size: number,

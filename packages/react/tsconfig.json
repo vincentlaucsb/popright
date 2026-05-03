@@ -11,7 +11,7 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@popright/core": ["../core/src/index.ts"]
+      "popright": ["../core/src/index.ts"]
     },
     "rootDir": "src",
     "strict": true,

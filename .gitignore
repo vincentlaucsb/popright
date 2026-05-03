@@ -91,6 +91,7 @@ out
 .nuxt
 dist
 dist-demo/
+.temp/
 .demo-server.*.log
 playwright-report/
 test-results/

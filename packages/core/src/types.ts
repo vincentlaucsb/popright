@@ -1,3 +1,4 @@
+/** Reasons emitted when a root menu closes. */
 export type CloseReason =
   | "select"
   | "escape"
@@ -9,6 +10,12 @@ export type CloseReason =
   | "destroy"
   | "reopen";
 
+/**
+ * Coordinates and metadata for programmatic or native-event opens.
+ *
+ * `context` is user data carried through to item resolvers and selection
+ * callbacks; it is not interpreted by core.
+ */
 export interface OpenInput {
   x?: number;
   y?: number;
@@ -17,6 +24,7 @@ export interface OpenInput {
   context?: unknown;
 }
 
+/** Open-time context passed to resolvers, callbacks, and render helpers. */
 export interface MenuContext {
   triggerEvent?: Event;
   target?: Element;
@@ -25,6 +33,7 @@ export interface MenuContext {
   data?: unknown;
 }
 
+/** Public handle returned by `createContextMenu`. */
 export interface ContextMenuInstance {
   open(input?: OpenInput): void;
   close(reason?: CloseReason): void;
@@ -34,19 +43,31 @@ export interface ContextMenuInstance {
   readonly root: HTMLElement | null;
 }
 
+/**
+ * Configuration for one root context menu.
+ *
+ * Options describe behavior and rendering. Core still owns DOM creation, event
+ * listeners, focus management, and cleanup for the instance.
+ */
 export interface ContextMenuOptions {
+  /** Static items or a synchronous resolver evaluated at open time. */
   items: MenuItemsInput;
+  id?: string;
+  context?: unknown | ((event: Event) => unknown);
   onSelect?: (event: MenuSelectEvent) => void;
   onOpen?: (event: MenuOpenEvent) => void;
   onClose?: (event: MenuCloseEvent) => void;
   onBeforeOpen?: (event: MenuBeforeOpenEvent) => boolean | void;
+  /** Native target event. `contextmenu` is default; `click` is opt-in. */
   trigger?: "contextmenu" | "click" | "manual";
   placement?: "cursor" | "target";
   strategy?: "fixed" | "absolute";
   closeOnSelect?: boolean;
   closeOnBlur?: boolean;
   closeOnEscape?: boolean;
+  /** Scroll invalidates pointer/target geometry, so menus close by default. */
   closeOnScroll?: boolean;
+  /** Resize invalidates viewport collision math, so menus close by default. */
   closeOnResize?: boolean;
   modal?: boolean;
   collisionPadding?: number;
@@ -61,6 +82,7 @@ export interface ContextMenuOptions {
   dir?: "ltr" | "rtl";
 }
 
+/** Internal option shape after defaults have been applied. */
 export type NormalizedContextMenuOptions = Required<
   Pick<
     ContextMenuOptions,
@@ -90,6 +112,7 @@ export type NormalizedContextMenuOptions = Required<
     | "collisionPadding"
   >;
 
+/** Optional class hooks composed with Popright's structural classes. */
 export interface ContextMenuClassNames {
   menu?: string;
   item?: string;
@@ -105,6 +128,7 @@ export interface ContextMenuClassNames {
   submenuTrigger?: string;
 }
 
+/** Inline-style escape hatches for generated or highly local customization. */
 export interface ContextMenuStyles {
   menu?: Partial<CSSStyleDeclaration>;
   item?: Partial<CSSStyleDeclaration>;
@@ -118,6 +142,7 @@ export interface ContextMenuStyles {
   shortcut?: Partial<CSSStyleDeclaration>;
 }
 
+/** Accepted theme inputs for global or per-menu theming. */
 export type ContextMenuThemeInput =
   | "light"
   | "dark"
@@ -125,6 +150,7 @@ export type ContextMenuThemeInput =
   | ContextMenuTheme
   | ContextMenuThemeStore;
 
+/** Normalized theme object consumed by `ThemeStore` and menu roots. */
 export interface ContextMenuTheme {
   mode: "light" | "dark" | "system";
   className?: string;
@@ -148,6 +174,7 @@ export interface ContextMenuThemeTokens {
   zIndex: string | number;
 }
 
+/** Minimal evented store used without tying core to any framework. */
 export interface ContextMenuThemeStore {
   get(): ContextMenuTheme;
   set(theme: ContextMenuThemeInput): void;
@@ -155,8 +182,10 @@ export interface ContextMenuThemeStore {
   subscribe(listener: (theme: ContextMenuTheme) => void): () => void;
 }
 
+/** Menu data can be static or derived synchronously from open-time context. */
 export type MenuItemsInput = MenuItem[] | ((context: MenuContext) => MenuItem[]);
 
+/** All supported menu item variants in the data-driven model. */
 export type MenuItem =
   | MenuActionItem
   | MenuSeparatorItem
@@ -166,7 +195,10 @@ export type MenuItem =
   | MenuRadioItem
   | MenuSubmenuItem;
 
+/** Items that can represent an actionable user choice. */
 export type MenuSelectableItem = MenuActionItem | MenuCheckboxItem | MenuRadioItem | MenuSubmenuItem;
+
+/** Items allowed inside a submenu; recursive submenus are intentionally deferred. */
 export type MenuChildItem =
   | MenuActionItem
   | MenuSeparatorItem
@@ -174,8 +206,10 @@ export type MenuChildItem =
   | MenuLabelItem
   | MenuCheckboxItem
   | MenuRadioItem;
+/** Static or synchronous submenu children. */
 export type MenuChildItemsInput = MenuChildItem[] | ((context: MenuContext) => MenuChildItem[]);
 
+/** Standard selectable command row. */
 export interface MenuActionItem {
   type?: "item";
   id: string;
@@ -193,11 +227,13 @@ export interface MenuActionItem {
   onSelect?: (event: MenuSelectEvent) => void;
 }
 
+/** Visual divider that is never focusable or selectable. */
 export interface MenuSeparatorItem {
   type: "separator";
   hidden?: boolean;
 }
 
+/** Non-selectable title row for menus that need a contextual heading. */
 export interface MenuHeaderItem {
   type: "header";
   label: string;
@@ -207,12 +243,14 @@ export interface MenuHeaderItem {
   style?: Partial<CSSStyleDeclaration>;
 }
 
+/** Non-selectable group label. */
 export interface MenuLabelItem {
   type: "label";
   label: string;
   hidden?: boolean;
 }
 
+/** Reserved checkbox shape; full checkbox behavior is a later phase. */
 export interface MenuCheckboxItem {
   type: "checkbox";
   id: string;
@@ -223,6 +261,7 @@ export interface MenuCheckboxItem {
   onCheckedChange?: (checked: boolean, event: MenuSelectEvent) => void;
 }
 
+/** Reserved radio shape; full radio behavior is a later phase. */
 export interface MenuRadioItem {
   type: "radio";
   id: string;
@@ -233,6 +272,7 @@ export interface MenuRadioItem {
   disabled?: boolean;
 }
 
+/** Selectable row that opens a child menu branch instead of firing selection. */
 export interface MenuSubmenuItem {
   type: "submenu";
   id: string;
@@ -249,13 +289,16 @@ export interface MenuSubmenuItem {
   items: MenuChildItemsInput;
 }
 
+/** Icon input normalized into a fixed icon column by the renderer. */
 export type MenuIcon = string | HTMLElement | ((context: MenuRenderContext) => Node | string);
 
+/** Context passed to icon render callbacks. */
 export interface MenuRenderContext {
   item: MenuItem;
   context: MenuContext;
 }
 
+/** Event object sent to per-item and global selection callbacks. */
 export interface MenuSelectEvent {
   id: string;
   item: MenuSelectableItem;
@@ -265,16 +308,19 @@ export interface MenuSelectEvent {
   preventClose: () => void;
 }
 
+/** Event object sent after a menu root has been rendered and positioned. */
 export interface MenuOpenEvent {
   context: MenuContext;
   root: HTMLElement;
 }
 
+/** Event object sent after menu DOM and global listeners have been cleaned up. */
 export interface MenuCloseEvent {
   reason: CloseReason;
   nativeEvent?: Event;
 }
 
+/** Event object sent before item resolution/rendering; return false to cancel. */
 export interface MenuBeforeOpenEvent {
   context: MenuContext;
 }

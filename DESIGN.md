@@ -50,7 +50,7 @@ Popright should use a scoped multi-package architecture from the beginning. The 
 Initial packages:
 
 ```text
-@popright/core
+popright
 @popright/react
 ```
 
@@ -617,7 +617,7 @@ The initial version may omit checkbox/radio/custom icon support if needed, but t
 
 The React adapter should be the first framework package because it has a concrete downstream use case: the resume builder.
 
-The React package should remain thin. It should not reimplement menu behavior. It should translate React props and lifecycle into `@popright/core`.
+The React package should remain thin. It should not reimplement menu behavior. It should translate React props and lifecycle into `popright`.
 
 ### React Hook
 
@@ -705,7 +705,7 @@ Svelte support is important, but it is not the first Popright adapter. The exist
 There are three possible Svelte futures:
 
 1. Keep `svelte-contextmenu` as a separate Svelte-specific package.
-2. Modernize `svelte-contextmenu` internally by adopting `@popright/core`.
+2. Modernize `svelte-contextmenu` internally by adopting `popright`.
 3. Add `@popright/svelte` as a new adapter and migrate users gradually.
 
 The decision should be made later, after the core is stable.
@@ -1157,7 +1157,7 @@ export interface ContextMenuThemeStore {
 export const contextMenuTheme: ContextMenuThemeStore;
 ```
 
-`subscribe` should return an unsubscribe function. Internally this can be implemented with a small event emitter, an `EventTarget`, or a simple Set of listeners. Avoid framework-specific stores in `@popright/core`.
+`subscribe` should return an unsubscribe function. Internally this can be implemented with a small event emitter, an `EventTarget`, or a simple Set of listeners. Avoid framework-specific stores in `popright`.
 
 The store should emit when:
 
@@ -1197,7 +1197,7 @@ export interface ContextMenuThemeTokens {
 Global usage:
 
 ```ts
-import { contextMenuTheme } from "@popright/core";
+import { contextMenuTheme } from "popright";
 
 contextMenuTheme.set("dark");
 ```
@@ -1246,7 +1246,7 @@ packages/core/src/styles/popright.scss
 Published CSS:
 
 ```text
-@popright/core/styles.css
+popright/styles.css
 ```
 
 The SCSS should provide sane, attractive defaults without requiring a design system. It should define the base structure, item layout, active states, disabled states, separators, shortcut alignment, submenu affordances, and light/dark variables.
@@ -1254,7 +1254,7 @@ The SCSS should provide sane, attractive defaults without requiring a design sys
 The compiled CSS should be optional:
 
 ```ts
-import "@popright/core/styles.css";
+import "popright/styles.css";
 ```
 
 Applications with their own styling can skip the default CSS and target data attributes/classes directly.
@@ -1746,7 +1746,7 @@ Do not pull in a general UI primitive library. That would blur the purpose of th
 ### Phase 6: Svelte Strategy
 
 - Decide whether to leave `svelte-contextmenu` separate.
-- Decide whether to modernize `svelte-contextmenu` with `@popright/core`.
+- Decide whether to modernize `svelte-contextmenu` with `popright`.
 - Decide whether `@popright/svelte` should exist.
 - If needed, implement Svelte action/component.
 
@@ -1778,7 +1778,7 @@ Do not pull in a general UI primitive library. That would blur the purpose of th
 3. Should checkbox/radio items be in v1 or v1.1?
 4. Should Popright use direct DOM rendering only, or support custom render callbacks?
 5. Should the Svelte wrapper expose snippets if it exists?
-6. Should package publishing start as `@popright/core` and `@popright/react` from day one?
+6. Should package publishing start as `popright` and `@popright/react` from day one?
 7. Should long-press/touch context menus be supported?
 8. Should the positioning boundary be viewport-only in v1?
 9. Should disabled items be focusable or skipped? Recommendation: skipped by default, possibly configurable later.

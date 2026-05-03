@@ -3,10 +3,32 @@
   "version": "0.0.1",
   "description": "React adapter for Popright context menus.",
   "type": "module",
+  "homepage": "https://github.com/vincentlaucsb/popright#readme",
+  "bugs": {
+    "url": "https://github.com/vincentlaucsb/popright/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vincentlaucsb/popright.git",
+    "directory": "packages/react"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "context-menu",
+    "menu",
+    "react",
+    "typescript"
+  ],
+  "dependencies": {
+    "popright": "0.0.1"
+  },
   "peerDependencies": {
-    "@popright/core": "0.0.1",
     "react": ">=18"
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

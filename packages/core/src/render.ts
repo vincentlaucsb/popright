@@ -26,6 +26,7 @@ export interface RenderMenuItemsOptions {
   onItemEnter: (index: number) => void;
 }
 
+/** Creates the DOM root that owns keyboard, pointer, and click delegation. */
 export function createMenuRoot({
   ownerDocument,
   options,
@@ -34,6 +35,9 @@ export function createMenuRoot({
   onClick
 }: MenuRootOptions): HTMLElement {
   const root = ownerDocument.createElement("div");
+  if (options.id) {
+    root.id = options.id;
+  }
   root.className = composeClass(DEFAULT_CLASSES.menu, options.className);
   root.dataset.poprightMenu = "";
   root.setAttribute("role", "menu");
@@ -61,7 +65,18 @@ export function createMenuRoot({
   return root;
 }
 
+/**
+ * Renders normalized menu data into stable DOM/data-attribute contracts.
+ *
+ * The renderer is intentionally dumb: it does not own active state, callbacks,
+ * positioning, or item resolution. Keeping it a pure DOM projection makes the
+ * controller/menu lifecycle easier to reason about and simpler to test.
+ */
 export function renderMenuItems(root: HTMLElement, { items, context, options, onItemEnter }: RenderMenuItemsOptions): void {
+  /**
+   * Icon columns are all-or-nothing per menu. When any item has an icon, every
+   * actionable row receives an icon cell so all text starts on the same x-axis.
+   */
   const hasIcons = items.some((item) => isRenderableMenuItem(item) && Boolean(item.icon));
   root.toggleAttribute("data-popright-has-icons", hasIcons);
 
@@ -153,6 +168,12 @@ export function renderMenuItems(root: HTMLElement, { items, context, options, on
   });
 }
 
+/**
+ * Normalizes all icon inputs into a wrapper span owned by this menu.
+ *
+ * Node inputs are cloned so passing the same HTMLElement to multiple menu items
+ * cannot move it between rows.
+ */
 function renderIcon(ownerDocument: Document, iconInput: MenuIcon | undefined, context: MenuRenderContext): HTMLElement {
   const icon = ownerDocument.createElement("span");
   icon.className = DEFAULT_CLASSES.icon;
@@ -196,6 +217,7 @@ export function updateActiveDom(
   }
 }
 
+/** Computes the structural classes for an actionable row without touching DOM. */
 export function getItemClassName(
   item: MenuActionItem | MenuSubmenuItem,
   options: Pick<ContextMenuOptions, "classes">
@@ -224,6 +246,10 @@ export interface RenderableItemState {
   active: boolean;
 }
 
+/**
+ * Exposes the same render classification used by `renderMenuItems` for unit
+ * tests, without forcing tests to parse DOM strings.
+ */
 export function getRenderableItemState(
   item: MenuItem,
   index: number,
@@ -277,6 +303,7 @@ export function getRenderableItemState(
   };
 }
 
+/** Only action and submenu items become focusable/selectable menu rows today. */
 function isRenderableMenuItem(item: MenuItem): item is MenuActionItem | MenuSubmenuItem {
   return item.type === undefined || item.type === "item" || item.type === "submenu";
 }

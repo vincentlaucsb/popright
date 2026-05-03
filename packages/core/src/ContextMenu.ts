@@ -32,27 +32,69 @@ import {
 type Cleanup = () => void;
 
 interface ContextMenuInternalOptions {
+  /** Parent root when this instance is acting as an unregistered submenu. */
   parent?: ContextMenu;
+
+  /** Submenus are real ContextMenu objects, but they do not participate as root menus. */
   register?: boolean;
 }
 
+/**
+ * Owns one context menu instance: target listeners, resolved items, DOM, focus,
+ * global cleanup, and any open submenu branch.
+ *
+ * Root menus register with `MenuController`; submenus reuse the same behavior
+ * but opt out of controller registration so the controller's active-menu
+ * invariant remains about root menus only.
+ */
 export class ContextMenu {
   readonly controller: MenuController;
+
+  /** Native targets that may trigger this menu. Empty means programmatic/manual only. */
   readonly targets: EventTarget[];
+
   options: NormalizedContextMenuOptions;
+
+  /** The currently rendered menu root. Null means no DOM or global listeners should exist. */
   root: HTMLElement | null = null;
+
   items: MenuItem[] = [];
+
+  /** Index into `items`; disabled items, labels, and separators are skipped. */
   activeIndex = -1;
+
+  /** Open-time context is retained so selection callbacks see the original trigger data. */
   currentContext: MenuContext | null = null;
+
   destroyed = false;
+
+  /** Assigned by the controller and used only for same-depth native-event tie-breaking. */
   registeredAt = 0;
+
+  /** Element that had focus before open; restored on close when it is still focusable. */
   previousFocus: Element | null = null;
+
+  /** Theme subscriptions exist only while the DOM root is open. */
   unsubscribeTheme: Cleanup | null = null;
+
+  /** Target listeners live for the menu instance lifetime. */
   targetCleanups: Cleanup[] = [];
+
+  /** Global listeners live only while the menu is open. */
   globalCleanups: Cleanup[] = [];
+
+  /** Only one child submenu branch may be open from a menu at a time. */
   childMenu: ContextMenu | null = null;
+
   readonly parent: ContextMenu | null;
+
   readonly registeredWithController: boolean;
+
+  /**
+   * Tracks the submenu item source that produced the current child.
+   * Re-entering the already-open trigger should preserve the submenu instead
+   * of tearing down and recreating its DOM.
+   */
   private itemsSource: unknown = null;
 
   constructor(controller: MenuController, target: unknown, options: ContextMenuOptions, internal: ContextMenuInternalOptions = {}) {
@@ -97,6 +139,11 @@ export class ContextMenu {
       return;
     }
 
+    /**
+     * Reopening the same instance must clear its old DOM and listeners first.
+     * The controller may already have selected this menu as active, so this
+     * close call intentionally does not unregister the instance.
+     */
     this.close("reopen");
     if (this.registeredWithController) {
       this.controller.setActive(this);
@@ -134,6 +181,10 @@ export class ContextMenu {
 
     const portal = this.options.portal === false ? document.body : this.options.portal ?? document.body;
     const initialVisibility = root.style.visibility;
+    /**
+     * Layout must be measured after insertion, but users should never see the
+     * menu flash at the unpositioned origin.
+     */
     root.style.visibility = "hidden";
     portal.append(root);
     this.positionRoot(root, input);
@@ -153,6 +204,7 @@ export class ContextMenu {
   }
 
   close(reason: CloseReason = "manual", nativeEvent?: Event): void {
+    /** Closing a parent owns closing its descendant submenu branch. */
     this.closeChild(reason, nativeEvent);
     if (!this.root) {
       if (reason === "destroy" && this.registeredWithController) {
@@ -259,6 +311,10 @@ export class ContextMenu {
 
     let rect = root.getBoundingClientRect();
     if (rect.height > availableHeight && this.options.maxHeight === undefined) {
+      /**
+       * Until full positioning constraints are configurable, long menus prefer
+       * becoming scrollable over overflowing the viewport.
+       */
       root.style.maxHeight = `${availableHeight}px`;
       root.style.overflowY = "auto";
       rect = root.getBoundingClientRect();
@@ -302,7 +358,8 @@ export class ContextMenu {
           x: pointerEvent.clientX ?? 0,
           y: pointerEvent.clientY ?? 0,
           target: event.currentTarget instanceof Element ? event.currentTarget : undefined,
-          triggerEvent: event
+          triggerEvent: event,
+          context: typeof this.options.context === "function" ? this.options.context(event) : this.options.context
         });
       };
       target.addEventListener(type, listener);
@@ -338,6 +395,11 @@ export class ContextMenu {
     };
     const scrollListener = (event: Event) => {
       if (this.options.closeOnScroll) {
+        /**
+         * Scroll invalidates the pointer/target geometry that opened the menu.
+         * Closing is deliberately simpler and less surprising than chasing a
+         * moving target across scroll containers.
+         */
         this.close("scroll", event);
       }
     };
@@ -516,6 +578,7 @@ export class ContextMenu {
       return;
     }
 
+    /** Sibling submenus are mutually exclusive within one menu level. */
     this.closeChild("manual");
     const childItems = normalizeItems(resolveItems(item.items, this.currentContext ?? createMenuContext({}))).filter(
       isChildMenuItem
