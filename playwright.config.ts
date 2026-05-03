@@ -8,7 +8,10 @@ export default defineConfig({
   snapshotPathTemplate: "{testDir}/{testFilePath}-snapshots/{arg}{ext}",
   fullyParallel: false,
   workers: 1,
-  reporter: "list",
+  reporter: [
+    ["list"],
+    ["html", { open: "never" }]
+  ],
   expect: {
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.01
