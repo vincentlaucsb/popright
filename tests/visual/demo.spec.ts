@@ -2,6 +2,15 @@ import { expect, type Page, test } from "@playwright/test";
 
 async function gotoDemo(page: Page): Promise<void> {
   await page.goto("/");
+  await page.addStyleTag({
+    content: `
+      *, *::before, *::after {
+        font-family: Arial, "Liberation Sans", sans-serif !important;
+        font-variant-ligatures: none !important;
+        text-rendering: geometricPrecision !important;
+      }
+    `
+  });
   await expect(page.getByRole("heading", { name: "Metallica Right-Click Jukebox" })).toBeVisible();
   await expect(page.locator(".album-row")).toHaveCount(11);
 }

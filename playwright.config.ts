@@ -19,6 +19,11 @@ export default defineConfig({
   },
   use: {
     baseURL,
+    colorScheme: "light",
+    viewport: {
+      width: 1280,
+      height: 720
+    },
     trace: "on-first-retry"
   },
   webServer: {
