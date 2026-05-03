@@ -439,9 +439,53 @@ export interface ContextMenuOptions {
   zIndex?: number;
 
   className?: string;
+  classes?: ContextMenuClassNames;
+  styles?: ContextMenuStyles;
+  theme?: ContextMenuThemeInput;
   portal?: Element | false;
   dir?: "ltr" | "rtl";
 }
+```
+
+The `className`, `classes`, and `styles` options exist to support the theming model inherited from `svelte-contextmenu`: global defaults with local override points.
+
+```ts
+export interface ContextMenuClassNames {
+  menu?: string;
+  item?: string;
+  itemActive?: string;
+  itemDisabled?: string;
+  itemDanger?: string;
+  separator?: string;
+  label?: string;
+  icon?: string;
+  shortcut?: string;
+  submenu?: string;
+  submenuTrigger?: string;
+}
+
+export interface ContextMenuStyles {
+  menu?: Partial<CSSStyleDeclaration>;
+  item?: Partial<CSSStyleDeclaration>;
+  itemActive?: Partial<CSSStyleDeclaration>;
+  itemDisabled?: Partial<CSSStyleDeclaration>;
+  itemDanger?: Partial<CSSStyleDeclaration>;
+  separator?: Partial<CSSStyleDeclaration>;
+  label?: Partial<CSSStyleDeclaration>;
+  icon?: Partial<CSSStyleDeclaration>;
+  shortcut?: Partial<CSSStyleDeclaration>;
+}
+```
+
+Theme input:
+
+```ts
+export type ContextMenuThemeInput =
+  | "light"
+  | "dark"
+  | "system"
+  | ContextMenuTheme
+  | ContextMenuThemeStore;
 ```
 
 Menu input:
@@ -491,6 +535,9 @@ export interface MenuActionItem {
   shortcut?: string;
   icon?: MenuIcon;
   description?: string;
+  className?: string;
+  classes?: Partial<ContextMenuClassNames>;
+  style?: Partial<CSSStyleDeclaration>;
   value?: unknown;
   onSelect?: (event: MenuSelectEvent) => void;
 }
@@ -737,6 +784,28 @@ For v1, prefer stable DOM attributes and CSS variables over custom render snippe
 ## Rendering Model
 
 The core should render its own DOM by default. This is what enables vanilla usage and keeps framework wrappers thin.
+
+Menus should render into `document.body` by default. The menu DOM should not be inserted beside the trigger element unless the user opts into a custom portal target.
+
+Default portal behavior:
+
+```ts
+portal: document.body
+```
+
+Default positioning behavior:
+
+```ts
+strategy: "fixed"
+```
+
+Rationale:
+
+- Avoid clipping from `overflow: hidden` ancestors.
+- Avoid local stacking-context surprises.
+- Avoid transformed-parent coordinate bugs.
+- Make cursor-based viewport positioning more predictable.
+- Keep framework adapters simple.
 
 Default DOM shape:
 
@@ -1049,6 +1118,207 @@ export type CloseReason =
 
 Popright should ship a restrained default style that works immediately but is easy to override.
 
+The styling model should preserve one of the best ergonomics from `svelte-contextmenu`: a global theme with local overrides.
+
+Users should be able to:
+
+- Use the default Popright theme with no CSS.
+- Override global styles through CSS variables.
+- Override global structural classes through options.
+- Override a single menu's classes/styles.
+- Override a single item's classes/styles.
+- Target stable data attributes in their own CSS.
+
+The hierarchy should be:
+
+1. Popright default classes and CSS variables.
+2. Global theme store defaults.
+3. Per-menu `className`, `classes`, and `styles`.
+4. Per-item `className`, `classes`, and `style`.
+
+Local overrides should augment default classes by default rather than replacing every internal class. This keeps built-in behavior and layout stable while allowing users to customize appearance.
+
+### Theme Store
+
+Popright should expose a small global theme store. This lets applications configure the default appearance once while still allowing each menu to override locally.
+
+The store should be framework-agnostic and evented.
+
+Sketch:
+
+```ts
+export interface ContextMenuThemeStore {
+  get(): ContextMenuTheme;
+  set(theme: ContextMenuThemeInput): void;
+  update(updater: (theme: ContextMenuTheme) => ContextMenuTheme): void;
+  subscribe(listener: (theme: ContextMenuTheme) => void): () => void;
+}
+
+export const contextMenuTheme: ContextMenuThemeStore;
+```
+
+`subscribe` should return an unsubscribe function. Internally this can be implemented with a small event emitter, an `EventTarget`, or a simple Set of listeners. Avoid framework-specific stores in `@popright/core`.
+
+The store should emit when:
+
+- The active global theme changes.
+- Theme tokens change.
+- The light/dark/system mode changes.
+
+Open menus should be able to respond to global theme changes without being destroyed and recreated. The simplest implementation is to update data attributes and CSS variables on the existing menu root when the theme store emits.
+
+Possible theme model:
+
+```ts
+export interface ContextMenuTheme {
+  mode: "light" | "dark" | "system";
+  className?: string;
+  classes?: ContextMenuClassNames;
+  styles?: ContextMenuStyles;
+  tokens?: Partial<ContextMenuThemeTokens>;
+}
+
+export interface ContextMenuThemeTokens {
+  bg: string;
+  color: string;
+  border: string;
+  shadow: string;
+  radius: string;
+  padding: string;
+  itemHeight: string;
+  itemGap: string;
+  activeBg: string;
+  disabledColor: string;
+  dangerColor: string;
+  zIndex: string | number;
+}
+```
+
+Global usage:
+
+```ts
+import { contextMenuTheme } from "@popright/core";
+
+contextMenuTheme.set("dark");
+```
+
+Custom global theme:
+
+```ts
+contextMenuTheme.set({
+  mode: "dark",
+  className: "app-context-menu",
+  tokens: {
+    bg: "#18181b",
+    color: "#fafafa",
+    activeBg: "#27272a"
+  }
+});
+```
+
+Per-menu override:
+
+```ts
+createContextMenu(target, {
+  items,
+  theme: "light"
+});
+```
+
+Theme precedence:
+
+1. Built-in fallback theme.
+2. Global `contextMenuTheme`.
+3. Per-menu `theme`.
+4. Per-menu `classes`/`styles`.
+5. Per-item `className`/`classes`/`style`.
+
+### SCSS Source
+
+Popright should author its default styles in SCSS and ship compiled CSS.
+
+Source file:
+
+```text
+packages/core/src/styles/popright.scss
+```
+
+Published CSS:
+
+```text
+@popright/core/styles.css
+```
+
+The SCSS should provide sane, attractive defaults without requiring a design system. It should define the base structure, item layout, active states, disabled states, separators, shortcut alignment, submenu affordances, and light/dark variables.
+
+The compiled CSS should be optional:
+
+```ts
+import "@popright/core/styles.css";
+```
+
+Applications with their own styling can skip the default CSS and target data attributes/classes directly.
+
+### Light and Dark Mode
+
+Popright should ship first-class light and dark themes.
+
+Default behavior:
+
+```ts
+theme: "system"
+```
+
+`system` should follow `prefers-color-scheme` using CSS media queries where possible. Runtime JS should not be required just to follow system dark mode.
+
+Recommended CSS shape:
+
+```scss
+:root {
+  --popright-bg: #ffffff;
+  --popright-color: #171717;
+  --popright-border: #d4d4d4;
+  --popright-active-bg: #f4f4f5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --popright-bg: #18181b;
+    --popright-color: #fafafa;
+    --popright-border: #3f3f46;
+    --popright-active-bg: #27272a;
+  }
+}
+
+[data-popright-theme="light"] {
+  color-scheme: light;
+}
+
+[data-popright-theme="dark"] {
+  color-scheme: dark;
+}
+```
+
+If the theme store sets `"light"` or `"dark"`, the menu root should receive:
+
+```html
+data-popright-theme="light"
+```
+
+or:
+
+```html
+data-popright-theme="dark"
+```
+
+If the theme is `"system"`, the menu can either omit the attribute or set:
+
+```html
+data-popright-theme="system"
+```
+
+The exact CSS strategy can be finalized during implementation, but light and dark defaults are v1 requirements.
+
 Default design:
 
 - Neutral background.
@@ -1080,6 +1350,32 @@ CSS variables:
 }
 ```
 
+The root z-index variable is the v1 stacking strategy. Popright should not scan the page to detect the maximum z-index by default.
+
+Reasons not to scan for max z-index:
+
+- It requires reading computed styles for many elements.
+- It can be expensive on large pages.
+- `z-index` is scoped by stacking contexts, so a global maximum can be misleading.
+- Pages sometimes use intentionally extreme z-index values.
+- Deterministic CSS is easier to debug than automatic stacking escalation.
+
+Users can override stacking with CSS:
+
+```css
+:root {
+  --popright-z-index: 10000;
+}
+```
+
+or through an option if the implementation supports it:
+
+```ts
+createContextMenu(target, {
+  zIndex: 10000
+});
+```
+
 Selectors:
 
 ```css
@@ -1093,6 +1389,38 @@ Selectors:
 ```
 
 Do not require users to use the default CSS.
+
+Example local menu override:
+
+```ts
+createContextMenu(target, {
+  items,
+  className: "my-app-menu",
+  classes: {
+    item: "my-app-menu-item",
+    itemActive: "my-app-menu-item-active",
+    itemDanger: "my-app-menu-item-danger"
+  }
+});
+```
+
+Example per-item override:
+
+```ts
+[
+  {
+    id: "delete",
+    label: "Delete",
+    variant: "danger",
+    className: "file-action-delete",
+    style: {
+      fontWeight: "600"
+    }
+  }
+]
+```
+
+The implementation should be careful with inline styles. They are useful for escape hatches and generated menus, but CSS classes and variables should be the preferred customization path.
 
 ## Error Handling
 
@@ -1373,7 +1701,9 @@ Do not pull in a general UI primitive library. That would blur the purpose of th
 - Static item rendering.
 - Contextmenu listener.
 - Open/close/destroy.
-- Default CSS.
+- Default SCSS source and compiled CSS.
+- Light and dark default themes.
+- Global theme store skeleton.
 - Minimal demo.
 - Initial GitHub Actions build/test workflow.
 
@@ -1434,7 +1764,8 @@ Do not pull in a general UI primitive library. That would blur the purpose of th
 - Checkbox/radio items.
 - Typeahead.
 - RTL.
-- CSS variables cleanup.
+- Theme store cleanup.
+- CSS variables/SCSS cleanup.
 - Documentation pass.
 - Browser visual verification.
 - GitHub Pages deployment workflow.
@@ -1496,6 +1827,9 @@ Popright v1 is ready when:
 - Disabled items and separators work.
 - Viewport collision works in all four corners.
 - Menu can be destroyed without leaked DOM/listeners.
+- Global theme store exists and can update menu defaults.
+- Sane default SCSS/CSS ships with the package.
+- Light and dark themes work.
 - Build passes.
 - Browser tests cover core interactions.
 - Vanilla and React demos prove dynamic app-style menus.

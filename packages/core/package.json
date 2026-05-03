@@ -1,0 +1,24 @@
+{
+  "name": "@popright/core",
+  "version": "0.0.0",
+  "description": "A tiny, typed, data-driven context menu primitive for modern web apps.",
+  "type": "module",
+  "sideEffects": [
+    "./styles.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/build.mjs",
+    "test": "vitest run --pool=threads"
+  },
+  "license": "MIT"
+}

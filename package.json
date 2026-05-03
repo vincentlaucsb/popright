@@ -1,0 +1,27 @@
+{
+  "name": "popright-workspace",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/check.mjs",
+    "test": "vitest run --pool=threads packages",
+    "test:visual": "playwright test",
+    "test:visual:update-screenshots": "playwright test --update-snapshots",
+    "build:demo": "node scripts/build-demo.mjs",
+    "serve:demo": "node scripts/serve-demo.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/react": "^19.2.2",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
