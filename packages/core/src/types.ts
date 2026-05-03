@@ -201,6 +201,7 @@ export interface MenuSeparatorItem {
 export interface MenuHeaderItem {
   type: "header";
   label: string;
+  align?: "left" | "right" | "items";
   hidden?: boolean;
   className?: string;
   style?: Partial<CSSStyleDeclaration>;

@@ -79,6 +79,7 @@ export function renderMenuItems(root: HTMLElement, { items, context, options, on
       const header = root.ownerDocument.createElement("div");
       header.className = composeClass(DEFAULT_CLASSES.header, options.classes?.header, item.className);
       header.dataset.poprightHeader = "";
+      header.dataset.poprightHeaderAlign = item.align ?? "left";
       header.textContent = item.label;
       applyStyle(header, options.styles?.header);
       applyStyle(header, item.style);
@@ -218,6 +219,7 @@ export interface RenderableItemState {
   kind: "separator" | "header" | "label" | "item" | "skipped";
   className: string;
   role?: string;
+  align?: string;
   disabled: boolean;
   active: boolean;
 }
@@ -251,6 +253,7 @@ export function getRenderableItemState(
     return {
       kind: "header",
       className: composeClass(DEFAULT_CLASSES.header, options.classes?.header, item.className),
+      align: item.align ?? "left",
       disabled: false,
       active: false
     };

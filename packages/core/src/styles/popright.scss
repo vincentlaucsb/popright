@@ -128,6 +128,15 @@
   white-space: nowrap;
 }
 
+[data-popright-header-align="right"] {
+  text-align: right;
+}
+
+[data-popright-menu][data-popright-has-icons] [data-popright-header-align="items"],
+.popright-menu[data-popright-has-icons] .popright-header[data-popright-header-align="items"] {
+  padding-inline-start: calc(8px + var(--popright-icon-size) + var(--popright-item-gap));
+}
+
 [data-popright-label] {
   min-height: 24px;
   padding: 4px 8px 2px;

@@ -41,9 +41,12 @@ describe("menu rendering helpers", () => {
       disabled: false,
       active: false
     });
-    expect(getRenderableItemState({ type: "header", label: "Album", className: "album-title" }, 1, 1, options)).toEqual({
+    expect(
+      getRenderableItemState({ type: "header", label: "Album", align: "items", className: "album-title" }, 1, 1, options)
+    ).toEqual({
       kind: "header",
       className: "popright-header menu-title album-title",
+      align: "items",
       disabled: false,
       active: false
     });
