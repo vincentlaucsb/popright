@@ -228,6 +228,26 @@ export class ContextMenu {
     return this.targets.length > 0;
   }
 
+  canOpenFromNativeEvent(event: Event): boolean {
+    return this.options.trigger === event.type;
+  }
+
+  getClosestTarget(eventTarget: EventTarget | null): Element | undefined {
+    if (!eventTarget || this.targets.length === 0) {
+      return undefined;
+    }
+
+    let current: EventTarget | null = eventTarget;
+    while (current) {
+      if (this.targets.includes(current) && current instanceof Element) {
+        return current;
+      }
+      current = current instanceof Node ? current.parentNode : null;
+    }
+
+    return undefined;
+  }
+
   positionRoot(root: HTMLElement, input: OpenInput): void {
     const ownerDocument = root.ownerDocument;
     const ownerWindow = ownerDocument.defaultView;

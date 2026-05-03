@@ -9,10 +9,13 @@ interface TestMenu {
   registeredAt: number;
   targetDepth: number;
   hasTargetsValue: boolean;
+  triggerType: string;
   openNow(input: OpenInput): void;
   close(reason?: CloseReason): void;
-  getTargetDepth(): number;
+  getTargetDepth(target?: EventTarget | null): number;
   hasTargets(): boolean;
+  canOpenFromNativeEvent(event: Event): boolean;
+  getClosestTarget(target?: EventTarget | null): Element | undefined;
 }
 
 function createTestMenu(name: string, targetDepth = 0): TestMenu {
@@ -23,6 +26,7 @@ function createTestMenu(name: string, targetDepth = 0): TestMenu {
     registeredAt: 0,
     targetDepth,
     hasTargetsValue: true,
+    triggerType: "contextmenu",
     openNow(input) {
       this.opened.push(input);
     },
@@ -34,6 +38,12 @@ function createTestMenu(name: string, targetDepth = 0): TestMenu {
     },
     hasTargets() {
       return this.hasTargetsValue;
+    },
+    canOpenFromNativeEvent(event) {
+      return this.triggerType === event.type;
+    },
+    getClosestTarget() {
+      return undefined;
     }
   };
 }
@@ -87,5 +97,21 @@ describe("MenuController", () => {
     expect(first.opened).toHaveLength(0);
     expect(second.opened).toHaveLength(1);
     expect(controller.activeMenu).toBe(second);
+  });
+
+  it("chooses a more specific registered menu even if only the broad target requested first", async () => {
+    const controller = new MenuController();
+    const body = createTestMenu("body", 4);
+    const row = createTestMenu("row", 1);
+    const event = new Event("contextmenu");
+
+    controller.register(row as never);
+    controller.register(body as never);
+    controller.requestOpen(body as never, { triggerEvent: event });
+    await Promise.resolve();
+
+    expect(body.opened).toHaveLength(0);
+    expect(row.opened).toHaveLength(1);
+    expect(controller.activeMenu).toBe(row);
   });
 });

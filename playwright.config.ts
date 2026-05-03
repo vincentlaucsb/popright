@@ -5,6 +5,7 @@ const baseURL = `http://127.0.0.1:${visualPort}`;
 
 export default defineConfig({
   testDir: "./tests/visual",
+  snapshotPathTemplate: "{testDir}/{testFilePath}-snapshots/{arg}{ext}",
   fullyParallel: false,
   workers: 1,
   reporter: "list",

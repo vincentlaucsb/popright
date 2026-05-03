@@ -48,7 +48,7 @@ export class MenuController {
         if (!candidates || candidates.length === 0) {
           return;
         }
-        const winner = chooseCandidate(candidates);
+        const winner = chooseCandidate(this.#expandNativeEventCandidates(candidates, event));
         this.#open(winner.menu, winner.input);
       });
     }
@@ -59,6 +59,40 @@ export class MenuController {
       targetDepth,
       registeredAt: menu.registeredAt
     });
+  }
+
+  #expandNativeEventCandidates(candidates: OpenCandidate[], event: Event): OpenCandidate[] {
+    const expanded = [...candidates];
+    const seen = new Set(candidates.map((candidate) => candidate.menu));
+    const source = candidates[0]?.input;
+
+    if (!source) {
+      return expanded;
+    }
+
+    for (const menu of this.#menus) {
+      if (seen.has(menu) || !menu.canOpenFromNativeEvent(event)) {
+        continue;
+      }
+
+      const targetDepth = menu.getTargetDepth(event.target);
+      if (targetDepth === -1 && menu.hasTargets()) {
+        continue;
+      }
+
+      expanded.push({
+        menu,
+        input: {
+          ...source,
+          target: menu.getClosestTarget(event.target) ?? source.target,
+          triggerEvent: event
+        },
+        targetDepth,
+        registeredAt: menu.registeredAt
+      });
+    }
+
+    return expanded;
   }
 
   closeActive(reason: CloseReason = "manual", nativeEvent?: Event): void {
