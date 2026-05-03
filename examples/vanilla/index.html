@@ -193,6 +193,12 @@
         fill: none;
       }
 
+      .page-context-menu [data-popright-icon] {
+        color: var(--demo-accent);
+        font-size: 18px;
+        font-weight: 800;
+      }
+
       .log {
         margin-top: 16px;
         min-height: 24px;
@@ -259,6 +265,12 @@
         polygon.setAttribute("fill", "currentColor");
         svg.append(polygon);
         return svg;
+      }
+
+      function setThemeFromMenu(theme, event) {
+        setTheme(theme);
+        event.preventClose();
+        log.textContent = `Theme set to ${theme}`;
       }
 
       albumList.innerHTML = albums.map((album) => `
@@ -376,6 +388,64 @@
       createContextMenu(document.querySelectorAll(".album-action-button"), {
         ...menuOptions,
         trigger: "click"
+      });
+
+      createContextMenu(document.body, {
+        className: "page-context-menu",
+        minWidth: 240,
+        items: [
+          { type: "header", label: "Page Menu" },
+          {
+            type: "submenu",
+            id: "view-source",
+            label: "View Source",
+            items: [
+              {
+                id: "source-browser",
+                label: "Browser",
+                value: { action: "source-browser" }
+              },
+              {
+                id: "source-github",
+                label: "On GitHub",
+                value: { action: "source-github" }
+              }
+            ]
+          },
+          { type: "separator" },
+          {
+            id: "theme-light",
+            label: "Light",
+            icon: "☼",
+            value: { action: "theme", theme: "light" },
+            onSelect(event) {
+              setThemeFromMenu("light", event);
+            }
+          },
+          {
+            id: "theme-dark",
+            label: "Dark",
+            icon: "☾",
+            value: { action: "theme", theme: "dark" },
+            onSelect(event) {
+              setThemeFromMenu("dark", event);
+            }
+          }
+        ],
+        onSelect({ item }) {
+          const action = item.value?.action;
+          if (action === "source-browser") {
+            window.open(`view-source:${window.location.href}`, "_blank", "noopener,noreferrer");
+            return;
+          }
+          if (action === "source-github") {
+            window.open(
+              "https://github.com/vincentlaucsb/popright/blob/main/examples/vanilla/index.html",
+              "_blank",
+              "noopener,noreferrer"
+            );
+          }
+        }
       });
     </script>
   </body>

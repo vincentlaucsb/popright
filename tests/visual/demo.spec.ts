@@ -28,15 +28,17 @@ test("demo page dark theme", async ({ page }) => {
   });
 });
 
-test("context menu opened from album right click", async ({ page }) => {
+test("page context menu opened from right click", async ({ page }) => {
   await gotoDemo(page);
-  await albumRow(page, "Ride the Lightning").click({ button: "right" });
+  await page.getByRole("heading", { name: "Metallica Right-Click Jukebox" }).click({ button: "right" });
 
   const menu = page.getByRole("menu");
   await expect(menu).toBeVisible();
-  await expect(menu.getByRole("menuitem", { name: /For Whom the Bell Tolls/ })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "View Source" })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Light" })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Dark" })).toBeVisible();
 
-  await expect(menu).toHaveScreenshot("album-context-menu.png");
+  await expect(menu).toHaveScreenshot("page-context-menu.png");
 });
 
 test("context menu opened from action button", async ({ page }) => {

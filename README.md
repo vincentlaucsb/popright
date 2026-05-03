@@ -34,6 +34,31 @@ const menu = createContextMenu(document.querySelector("#file-row")!, {
 menu.destroy();
 ```
 
+## React Usage
+
+```tsx
+import { useContextMenu } from "@popright/react";
+
+function AlbumRow({ album }) {
+  const menu = useContextMenu<HTMLDivElement>({
+    items: album.songs.map((song) => ({ id: song, label: song })),
+    onSelect({ id }) {
+      console.log(id);
+    }
+  });
+
+  return <div ref={menu.ref}>{album.title}</div>;
+}
+```
+
+```tsx
+import { ContextMenu } from "@popright/react";
+
+<ContextMenu items={[{ id: "play", label: "Play" }]}>
+  <button type="button">Actions</button>
+</ContextMenu>;
+```
+
 ## Scripts
 
 ```sh

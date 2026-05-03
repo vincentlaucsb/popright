@@ -83,16 +83,16 @@
 
 ## React Adapter Tests
 
-- [ ] `useContextMenu` attaches a core menu to the ref element.
-- [ ] `useContextMenu` detaches from the previous ref element.
-- [ ] `useContextMenu` updates options without stale closures.
-- [ ] Unmount destroys the core instance.
+- [x] ~~`useContextMenu` attaches a core menu to the ref element.~~
+- [x] ~~`useContextMenu` detaches from the previous ref element.~~
+- [x] ~~`useContextMenu` updates options without stale closures.~~
+- [x] ~~Unmount destroys the core instance.~~
 - [ ] Manual `open()` passes React `nativeEvent`.
-- [ ] Hook supports React 18 and later.
-- [ ] Hook does not require a provider.
-- [ ] `ContextMenu` component wraps the hook.
-- [ ] `ContextMenu` preserves child props.
-- [ ] `ContextMenu` preserves child refs where possible.
+- [x] ~~Hook supports React 18 and later.~~
+- [x] ~~Hook does not require a provider.~~
+- [x] ~~`ContextMenu` component wraps the hook.~~
+- [x] ~~`ContextMenu` preserves child props.~~
+- [x] ~~`ContextMenu` preserves child refs where possible.~~
 
 ## Demo And Smoke Tests
 
@@ -114,6 +114,6 @@
 - [x] ~~`npm run test` succeeds.~~
 - [x] ~~`npm run build:demo` succeeds.~~
 - [ ] GitHub Actions runs check/build/test/demo on pull requests.
-- [ ] GitHub Pages deployment builds the demo from workspace packages.
+- [x] ~~GitHub Pages deployment builds the demo from workspace packages.~~
 - [ ] Published package includes compiled JS, declarations, and CSS.
 - [ ] Release bundle can include minified JS without changing source files.
