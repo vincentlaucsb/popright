@@ -58,17 +58,17 @@
 - [ ] Opens in the top-left viewport corner without overflowing.
 - [ ] Opens in the top-right viewport corner without overflowing.
 - [ ] Opens in the bottom-left viewport corner without overflowing.
-- [ ] Opens in the bottom-right viewport corner without overflowing.
-- [ ] Horizontally flips or shifts near viewport edges.
-- [ ] Vertically flips or shifts near viewport edges.
-- [ ] Honors `collisionPadding`.
-- [ ] Applies max height to long menus.
-- [ ] Long menus scroll.
-- [ ] Works on a scrolled page.
+- [x] ~~Opens in the bottom-right viewport corner without overflowing.~~
+- [x] ~~Horizontally flips or shifts near viewport edges.~~
+- [x] ~~Vertically flips or shifts near viewport edges.~~
+- [x] ~~Honors `collisionPadding`.~~
+- [x] ~~Applies max height to long menus.~~
+- [x] ~~Long menus scroll.~~
+- [x] ~~Works on a scrolled page.~~
 - [ ] Works inside a scroll container.
-- [ ] Uses fixed coordinates predictably when portaled to `document.body`.
+- [x] ~~Uses fixed coordinates predictably when portaled to `document.body`.~~
 - [ ] Target placement supports all side/align combinations near viewport edges.
-- [ ] RTL target placement maps start/end predictably.
+- [x] ~~RTL target placement maps start/end predictably.~~
 
 ## Accessibility Tests
 
@@ -111,6 +111,7 @@
 - [x] ~~Demo light/dark toggle updates context menu colors.~~
 - [x] ~~Demo action buttons use `createDropdownMenu`.~~
 - [x] ~~Playwright verifies RTL dropdown submenu affordance.~~
+- [x] ~~Playwright verifies priority collision regressions.~~
 - [ ] Demo selected action log updates.
 - [ ] Demo proves disabled state from dynamic row data.
 - [ ] React demo builds when Phase 5 lands.
