@@ -204,6 +204,19 @@ export interface ContextMenuThemeStore {
 /** Menu data can be static or derived synchronously from open-time context. */
 export type MenuItemsInput = MenuItem[] | ((context: MenuContext) => MenuItem[]);
 
+/** Stable string constants for menu item variants. */
+export const MenuItemType = {
+  Item: "item",
+  Separator: "separator",
+  Header: "header",
+  Label: "label",
+  Checkbox: "checkbox",
+  Radio: "radio",
+  Submenu: "submenu"
+} as const;
+
+export type MenuItemType = (typeof MenuItemType)[keyof typeof MenuItemType];
+
 /** All supported menu item variants in the data-driven model. */
 export type MenuItem =
   | MenuActionItem
@@ -230,7 +243,7 @@ export type MenuChildItemsInput = MenuChildItem[] | ((context: MenuContext) => M
 
 /** Standard selectable command row. */
 export interface MenuActionItem {
-  type?: "item";
+  type?: typeof MenuItemType.Item;
   id: string;
   label: string;
   disabled?: boolean;
@@ -248,13 +261,13 @@ export interface MenuActionItem {
 
 /** Visual divider that is never focusable or selectable. */
 export interface MenuSeparatorItem {
-  type: "separator";
+  type: typeof MenuItemType.Separator;
   hidden?: boolean;
 }
 
 /** Non-selectable title row for menus that need a contextual heading. */
 export interface MenuHeaderItem {
-  type: "header";
+  type: typeof MenuItemType.Header;
   label: string;
   align?: "left" | "right" | "items";
   hidden?: boolean;
@@ -264,14 +277,14 @@ export interface MenuHeaderItem {
 
 /** Non-selectable group label. */
 export interface MenuLabelItem {
-  type: "label";
+  type: typeof MenuItemType.Label;
   label: string;
   hidden?: boolean;
 }
 
 /** Reserved checkbox shape; full checkbox behavior is a later phase. */
 export interface MenuCheckboxItem {
-  type: "checkbox";
+  type: typeof MenuItemType.Checkbox;
   id: string;
   label: string;
   checked: boolean;
@@ -282,7 +295,7 @@ export interface MenuCheckboxItem {
 
 /** Reserved radio shape; full radio behavior is a later phase. */
 export interface MenuRadioItem {
-  type: "radio";
+  type: typeof MenuItemType.Radio;
   id: string;
   label: string;
   name: string;
@@ -293,7 +306,7 @@ export interface MenuRadioItem {
 
 /** Selectable row that opens a child menu branch instead of firing selection. */
 export interface MenuSubmenuItem {
-  type: "submenu";
+  type: typeof MenuItemType.Submenu;
   id: string;
   label: string;
   disabled?: boolean;
