@@ -1,0 +1,5 @@
+@use "./tokens";
+
+[data-popright-menu-type="dropdown"] {
+  min-width: var(--popright-dropdown-min-width, 180px);
+}

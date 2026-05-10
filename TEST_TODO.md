@@ -16,6 +16,7 @@
 - [ ] Per-menu theme overrides global theme.
 - [ ] Class/style overrides compose with default classes.
 - [x] ~~Controller closes the active menu before opening another menu.~~
+- [x] ~~Dropdown menus and context menus share one active root menu slot.~~
 - [x] ~~Same native event opens the closest registered target.~~
 - [x] ~~Same-depth native event prefers the most recently registered menu.~~
 - [x] ~~`update()` swaps callbacks/options without recreating the instance.~~
@@ -28,6 +29,7 @@
 - [x] ~~Opens on `contextmenu`.~~
 - [x] ~~Opens on click trigger.~~
 - [x] ~~Opens on `click` when `trigger: "click"` is configured.~~
+- [x] ~~Dropdown menus open on click and anchor to the trigger element.~~
 - [ ] Prevents the native browser context menu when Popright opens.
 - [ ] Opens programmatically at provided coordinates.
 - [ ] Closes on Escape.
@@ -65,6 +67,8 @@
 - [ ] Works on a scrolled page.
 - [ ] Works inside a scroll container.
 - [ ] Uses fixed coordinates predictably when portaled to `document.body`.
+- [ ] Target placement supports all side/align combinations near viewport edges.
+- [ ] RTL target placement maps start/end predictably.
 
 ## Accessibility Tests
 
@@ -78,6 +82,8 @@
 - [ ] Submenu triggers expose `aria-haspopup="menu"` when submenus land.
 - [ ] Submenu triggers update `aria-expanded` when submenus land.
 - [ ] Submenu content has `role="menu"` when submenus land.
+- [x] ~~RTL menus mirror submenu arrow affordance.~~
+- [ ] Screen-reader review of dropdown and context menu patterns.
 - [ ] Checkbox items expose `role="menuitemcheckbox"` and `aria-checked` when implemented.
 - [ ] Radio items expose `role="menuitemradio"` and `aria-checked` when implemented.
 
@@ -93,6 +99,8 @@
 - [x] ~~`ContextMenu` component wraps the hook.~~
 - [x] ~~`ContextMenu` preserves child props.~~
 - [x] ~~`ContextMenu` preserves child refs where possible.~~
+- [x] ~~`useDropdownMenu` attaches a core dropdown menu to the ref element.~~
+- [x] ~~`DropdownMenu` component wraps the hook.~~
 
 ## Demo And Smoke Tests
 
@@ -101,6 +109,8 @@
 - [x] ~~Demo has no console errors on first load.~~
 - [x] ~~Demo light/dark toggle updates page colors.~~
 - [x] ~~Demo light/dark toggle updates context menu colors.~~
+- [x] ~~Demo action buttons use `createDropdownMenu`.~~
+- [x] ~~Playwright verifies RTL dropdown submenu affordance.~~
 - [ ] Demo selected action log updates.
 - [ ] Demo proves disabled state from dynamic row data.
 - [ ] React demo builds when Phase 5 lands.
@@ -116,4 +126,13 @@
 - [ ] GitHub Actions runs check/build/test/demo on pull requests.
 - [x] ~~GitHub Pages deployment builds the demo from workspace packages.~~
 - [ ] Published package includes compiled JS, declarations, and CSS.
+- [x] ~~CommonJS build exposes the core factory entrypoint.~~
+- [ ] CommonJS build exposes the React adapter entrypoint in a packed install smoke test.
 - [ ] Release bundle can include minified JS without changing source files.
+
+## Product Judgment Needed
+
+- [ ] Decide whether `system` remains a documented alias for `automatic` or becomes internal compatibility only.
+- [ ] Decide whether dropdown-specific CSS should stay minimal or grow documented integration recipes first.
+- [ ] Decide whether recursive submenus remain intentionally unsupported for the next public release.
+- [ ] Decide whether Popright should ever ship animation examples, even as opt-in snippets.

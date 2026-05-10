@@ -70,7 +70,7 @@
 
       .theme-toggle {
         display: inline-grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
         gap: 2px;
         padding: 2px;
         color: var(--demo-text);
@@ -214,7 +214,8 @@
           <p class="eyebrow">Right-click an album or click Actions. Pick a track. Popright sends you to YouTube.</p>
         </div>
         <div class="theme-toggle" aria-label="Theme">
-          <button type="button" data-theme-value="light" aria-pressed="true">Light</button>
+          <button type="button" data-theme-value="automatic" aria-pressed="true">Auto</button>
+          <button type="button" data-theme-value="light" aria-pressed="false">Light</button>
           <button type="button" data-theme-value="dark" aria-pressed="false">Dark</button>
         </div>
       </div>
@@ -222,7 +223,8 @@
       <p class="log" id="log">Right-click an album or click Actions to choose one of its top tracks.</p>
     </main>
     <script type="module">
-      import { contextMenuTheme, createContextMenu } from "../../packages/core/dist/index.js";
+      import { contextMenuTheme, createContextMenu, createDropdownMenu } from "../../packages/core/dist/index.js";
+      window.__poprightCreateDropdownMenu = createDropdownMenu;
 
       const albums = [
         { id: "kill", year: "1983", title: "Kill 'Em All", songs: ["Seek & Destroy", "The Four Horsemen", "Whiplash"] },
@@ -299,7 +301,7 @@
         button.addEventListener("click", () => setTheme(button.dataset.themeValue));
       }
 
-      setTheme("light");
+      setTheme("automatic");
 
       const menuOptions = {
         items(context) {
@@ -385,10 +387,7 @@
       };
 
       createContextMenu(document.querySelectorAll(".album-row"), menuOptions);
-      createContextMenu(document.querySelectorAll(".album-action-button"), {
-        ...menuOptions,
-        trigger: "click"
-      });
+      createDropdownMenu(document.querySelectorAll(".album-action-button"), menuOptions);
 
       createContextMenu(document.body, {
         className: "page-context-menu",
@@ -413,6 +412,15 @@
             ]
           },
           { type: "separator" },
+          {
+            id: "theme-auto",
+            label: "Auto",
+            icon: "◐",
+            value: { action: "theme", theme: "automatic" },
+            onSelect(event) {
+              setThemeFromMenu("automatic", event);
+            }
+          },
           {
             id: "theme-light",
             label: "Light",

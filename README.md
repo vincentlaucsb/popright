@@ -4,9 +4,13 @@
 
 # Popright
 
-Popright is a tiny, typed, data-driven context menu primitive for modern web apps.
+Popright is a tiny, typed, data-driven menu primitive for modern web apps.
 
-This repository is in early implementation. The current build includes the framework-agnostic core package and a scaffolded React adapter package.
+Popright supports context menus and dropdown/action menus because those are the same interaction once they are open: a transient command surface with positioning, keyboard navigation, focus ownership, outside-click dismissal, submenus, and cleanup. The only meaningful difference is how the menu is triggered and anchored. Context menus usually open from pointer coordinates; dropdowns usually open from a trigger element.
+
+That shared runtime is intentional. Popright uses one controller for all root menus, so only one dropdown or context menu can be visible at a time. Opening a dropdown closes an open context menu, and opening a context menu closes an open dropdown.
+
+This repository is in early implementation. The current build includes the framework-agnostic core package and a React adapter package.
 
 ## Packages
 
@@ -16,7 +20,7 @@ This repository is in early implementation. The current build includes the frame
 ## Basic Usage
 
 ```ts
-import { createContextMenu } from "popright";
+import { createContextMenu, createDropdownMenu } from "popright";
 import "popright/styles.css";
 
 const menu = createContextMenu(document.querySelector("#file-row")!, {
@@ -32,6 +36,19 @@ const menu = createContextMenu(document.querySelector("#file-row")!, {
 });
 
 menu.destroy();
+```
+
+```ts
+const dropdown = createDropdownMenu(document.querySelector("#file-button")!, {
+  items: [
+    { id: "new", label: "New" },
+    { id: "open", label: "Open" },
+    { type: "separator" },
+    { id: "print", label: "Print" }
+  ]
+});
+
+dropdown.destroy();
 ```
 
 ## React Usage
@@ -52,12 +69,24 @@ function AlbumRow({ album }) {
 ```
 
 ```tsx
-import { ContextMenu } from "@popright/react";
+import { ContextMenu, DropdownMenu } from "@popright/react";
 
 <ContextMenu items={[{ id: "play", label: "Play" }]}>
   <button type="button">Actions</button>
 </ContextMenu>;
+
+<DropdownMenu items={[{ id: "new", label: "New" }]}>
+  <button type="button">File</button>
+</DropdownMenu>;
 ```
+
+## Design Goals
+
+- Context menus and dropdowns share one controller and one active-menu invariant.
+- Menus are data-first and can be generated from application state.
+- The core works without React; React is an adapter.
+- Menus appear immediately. Popright does not ship built-in animations.
+- Styling uses CSS variables, classes, and data attributes without design-system lock-in.
 
 ## Scripts
 

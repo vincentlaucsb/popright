@@ -16,7 +16,7 @@ export const DEFAULT_CLASSES: Required<ContextMenuClassNames> = {
 };
 
 export const BUILT_IN_THEME: ContextMenuTheme = {
-  mode: "system",
+  mode: "automatic",
   classes: DEFAULT_CLASSES,
   tokens: {}
 };

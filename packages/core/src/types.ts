@@ -61,6 +61,10 @@ export interface ContextMenuOptions {
   /** Native target event. `contextmenu` is default; `click` is opt-in. */
   trigger?: "contextmenu" | "click" | "manual";
   placement?: "cursor" | "target";
+  side?: "top" | "right" | "bottom" | "left";
+  align?: "start" | "center" | "end";
+  sideOffset?: number;
+  alignOffset?: number;
   strategy?: "fixed" | "absolute";
   closeOnSelect?: boolean;
   closeOnBlur?: boolean;
@@ -80,6 +84,12 @@ export interface ContextMenuOptions {
   theme?: ContextMenuThemeInput;
   portal?: Element | false;
   dir?: "ltr" | "rtl";
+  menuType?: "context" | "dropdown";
+}
+
+export interface DropdownMenuOptions extends Omit<ContextMenuOptions, "trigger" | "placement" | "menuType"> {
+  trigger?: "click" | "manual";
+  placement?: "target";
 }
 
 /** Internal option shape after defaults have been applied. */
@@ -89,6 +99,10 @@ export type NormalizedContextMenuOptions = Required<
     | "trigger"
     | "placement"
     | "strategy"
+    | "side"
+    | "align"
+    | "sideOffset"
+    | "alignOffset"
     | "closeOnSelect"
     | "closeOnBlur"
     | "closeOnEscape"
@@ -103,6 +117,10 @@ export type NormalizedContextMenuOptions = Required<
     | "trigger"
     | "placement"
     | "strategy"
+    | "side"
+    | "align"
+    | "sideOffset"
+    | "alignOffset"
     | "closeOnSelect"
     | "closeOnBlur"
     | "closeOnEscape"
@@ -144,6 +162,7 @@ export interface ContextMenuStyles {
 
 /** Accepted theme inputs for global or per-menu theming. */
 export type ContextMenuThemeInput =
+  | "automatic"
   | "light"
   | "dark"
   | "system"
@@ -152,7 +171,7 @@ export type ContextMenuThemeInput =
 
 /** Normalized theme object consumed by `ThemeStore` and menu roots. */
 export interface ContextMenuTheme {
-  mode: "light" | "dark" | "system";
+  mode: "automatic" | "light" | "dark" | "system";
   className?: string;
   classes?: ContextMenuClassNames;
   styles?: ContextMenuStyles;

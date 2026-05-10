@@ -6,7 +6,7 @@ import { applyStyle, composeClass, kebabCase } from "./utils.js";
 export function applyTheme(root: HTMLElement, localThemeInput?: ContextMenuThemeInput): void {
   const globalTheme = contextMenuTheme.get();
   const localTheme = normalizeThemeInput(localThemeInput ?? globalTheme, globalTheme);
-  root.dataset.poprightTheme = localTheme.mode ?? "system";
+  root.dataset.poprightTheme = localTheme.mode === "system" ? "automatic" : localTheme.mode ?? "automatic";
   root.className = composeClass(root.className, localTheme.className);
 
   const tokens = { ...globalTheme.tokens, ...localTheme.tokens };

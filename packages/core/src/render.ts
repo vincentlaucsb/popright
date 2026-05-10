@@ -40,9 +40,10 @@ export function createMenuRoot({
   }
   root.className = composeClass(DEFAULT_CLASSES.menu, options.className);
   root.dataset.poprightMenu = "";
+  root.dataset.poprightMenuType = options.menuType;
   root.setAttribute("role", "menu");
   root.tabIndex = -1;
-  root.dir = options.dir ?? ownerDocument.dir ?? "ltr";
+  root.dir = (options.dir ?? ownerDocument.dir) || "ltr";
   root.style.position = options.strategy;
   root.style.left = "0px";
   root.style.top = "0px";
@@ -152,7 +153,7 @@ export function renderMenuItems(root: HTMLElement, { items, context, options, on
       trigger.className = composeClass(DEFAULT_CLASSES.submenuTrigger, options.classes?.submenuTrigger);
       trigger.dataset.poprightSubmenuArrow = "";
       trigger.setAttribute("aria-hidden", "true");
-      trigger.textContent = "›";
+      trigger.textContent = root.dir === "rtl" ? "‹" : "›";
       element.append(trigger);
     } else if (item.shortcut) {
       const shortcut = root.ownerDocument.createElement("span");

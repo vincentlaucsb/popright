@@ -1,13 +1,14 @@
 # @popright/react
 
-React bindings for Popright context menus.
+React bindings for Popright context menus and dropdown menus.
 
 ```tsx
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuTrigger
+  ContextMenuTrigger,
+  DropdownMenu
 } from "@popright/react";
 import "popright/styles.css";
 
@@ -24,6 +25,16 @@ export function RowMenu() {
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
+  );
+}
+```
+
+```tsx
+export function FileMenu() {
+  return (
+    <DropdownMenu items={[{ id: "new", label: "New" }]}>
+      <button type="button">File</button>
+    </DropdownMenu>
   );
 }
 ```

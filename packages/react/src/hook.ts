@@ -1,5 +1,5 @@
-import { createContextMenu } from "popright";
-import type { ContextMenuInstance, ContextMenuOptions, OpenInput } from "popright";
+import { createContextMenu, createDropdownMenu } from "popright";
+import type { ContextMenuInstance, ContextMenuOptions, DropdownMenuOptions, OpenInput } from "popright";
 import * as React from "react";
 import type { UseContextMenuReturn } from "./types.js";
 
@@ -11,7 +11,23 @@ import type { UseContextMenuReturn } from "./types.js";
  */
 export function useContextMenu<T extends HTMLElement = HTMLElement>(
   options: ContextMenuOptions
-): UseContextMenuReturn<T> {
+): UseContextMenuReturn<T, ContextMenuOptions> {
+  return useCoreMenu(options, createContextMenu);
+}
+
+export function useDropdownMenu<T extends HTMLElement = HTMLElement>(
+  options: DropdownMenuOptions
+): UseContextMenuReturn<T, DropdownMenuOptions> {
+  return useCoreMenu(options, createDropdownMenu);
+}
+
+function useCoreMenu<T extends HTMLElement, TOptions extends ContextMenuOptions | DropdownMenuOptions>(
+  options: TOptions,
+  createMenu: {
+    (target: Element | Document | Window | Iterable<Element>, options: TOptions): ContextMenuInstance;
+    (options: TOptions): ContextMenuInstance;
+  }
+): UseContextMenuReturn<T, TOptions> {
   /**
    * Latest options are kept outside React render identity so stable callbacks
    * can create manual instances without closing over stale menu data.
@@ -33,7 +49,7 @@ export function useContextMenu<T extends HTMLElement = HTMLElement>(
 
   const ensureManualInstance = React.useCallback(() => {
     if (!instanceRef.current) {
-      instanceRef.current = createContextMenu(optionsRef.current);
+      instanceRef.current = createMenu(optionsRef.current);
     }
     return instanceRef.current;
   }, []);
@@ -53,7 +69,7 @@ export function useContextMenu<T extends HTMLElement = HTMLElement>(
       nodeRef.current = node;
 
       if (node) {
-        instanceRef.current = createContextMenu(node, optionsRef.current);
+        instanceRef.current = createMenu(node, optionsRef.current);
       }
     },
     [destroyInstance]
@@ -77,7 +93,7 @@ export function useContextMenu<T extends HTMLElement = HTMLElement>(
     instanceRef.current?.close();
   }, []);
 
-  const update = React.useCallback((nextOptions: Partial<ContextMenuOptions>) => {
+  const update = React.useCallback((nextOptions: Partial<TOptions>) => {
     instanceRef.current?.update(nextOptions);
   }, []);
 
