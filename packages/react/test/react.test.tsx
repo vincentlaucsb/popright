@@ -16,17 +16,22 @@ import {
   ContextMenuSubmenuContent,
   ContextMenuSubmenuTrigger,
   ContextMenuTrigger,
+  DropdownMenu,
+  useDropdownMenu,
   useContextMenu
 } from "../src/index.js";
 
 const createContextMenuMock = vi.hoisted(() => vi.fn());
+const createDropdownMenuMock = vi.hoisted(() => vi.fn());
 
 vi.mock("popright", () => ({
-  createContextMenu: createContextMenuMock
+  createContextMenu: createContextMenuMock,
+  createDropdownMenu: createDropdownMenuMock
 }));
 
 vi.mock("../../core/dist/index.js", () => ({
-  createContextMenu: createContextMenuMock
+  createContextMenu: createContextMenuMock,
+  createDropdownMenu: createDropdownMenuMock
 }));
 
 function createInstance(): ContextMenuInstance {
@@ -61,10 +66,33 @@ function unmount(root: Root, container: HTMLElement) {
 
 beforeEach(() => {
   createContextMenuMock.mockReset();
+  createDropdownMenuMock.mockReset();
 });
 
 afterEach(() => {
   document.body.replaceChildren();
+});
+
+describe("useDropdownMenu", () => {
+  it("attaches a core dropdown menu to the ref element", () => {
+    const instance = createInstance();
+    createDropdownMenuMock.mockReturnValue(instance);
+    const options = {
+      items: [{ id: "new", label: "New" }]
+    };
+
+    function Test() {
+      const menu = useDropdownMenu<HTMLButtonElement>(options);
+      return <button ref={menu.ref}>File</button>;
+    }
+
+    const { container, root } = render(<Test />);
+    const button = container.querySelector("button");
+
+    expect(createDropdownMenuMock).toHaveBeenCalledWith(button, options);
+
+    unmount(root, container);
+  });
 });
 
 describe("useContextMenu", () => {
@@ -367,6 +395,56 @@ describe("ContextMenu", () => {
 
     button?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
     expect(onContextMenu).toHaveBeenCalledOnce();
+
+    unmount(root, container);
+  });
+});
+
+describe("DropdownMenu", () => {
+  it("wraps the dropdown hook in simple mode", () => {
+    const instance = createInstance();
+    createDropdownMenuMock.mockReturnValue(instance);
+
+    const { container, root } = render(
+      <DropdownMenu items={[{ id: "new", label: "New" }]}>
+        <button>File</button>
+      </DropdownMenu>
+    );
+
+    const button = container.querySelector("button");
+    expect(createDropdownMenuMock).toHaveBeenCalledWith(button, {
+      items: [{ id: "new", label: "New" }]
+    });
+
+    unmount(root, container);
+  });
+
+  it("normalizes structured dropdown content", () => {
+    const instance = createInstance();
+    createDropdownMenuMock.mockReturnValue(instance);
+    const onClick = vi.fn();
+
+    const { container, root } = render(
+      <DropdownMenu id="file-menu">
+        <ContextMenuTrigger asChild onClick={onClick}>
+          <button>File</button>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem>New</ContextMenuItem>
+        </ContextMenuContent>
+      </DropdownMenu>
+    );
+
+    const button = container.querySelector("button");
+    expect(createDropdownMenuMock).toHaveBeenCalledWith(button, {
+      id: "file-menu",
+      trigger: undefined,
+      context: undefined,
+      items: [{ id: "new", label: "New" }]
+    });
+
+    button?.click();
+    expect(onClick).toHaveBeenCalledOnce();
 
     unmount(root, container);
   });

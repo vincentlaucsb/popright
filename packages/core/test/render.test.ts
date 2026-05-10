@@ -1,5 +1,7 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { getItemClassName, getRenderableItemState } from "../src/render.js";
+import { renderIcon, renderShortcut, renderSubmenuArrow } from "../src/render/items.js";
 import type { ContextMenuOptions, MenuItem } from "../src/types.js";
 
 describe("menu rendering helpers", () => {
@@ -90,5 +92,37 @@ describe("menu rendering helpers", () => {
       disabled: true,
       active: false
     });
+  });
+
+  it("renders shortcut and submenu affordance components", () => {
+    const shortcut = renderShortcut(document, { id: "save", label: "Save", shortcut: "Ctrl+S" }, {});
+    expect(shortcut.dataset.poprightShortcut).toBe("");
+    expect(shortcut.textContent).toBe("Ctrl+S");
+
+    const ltrArrow = renderSubmenuArrow(document, "ltr", {});
+    const rtlArrow = renderSubmenuArrow(document, "rtl", {});
+    expect(ltrArrow.dataset.poprightSubmenuArrow).toBe("");
+    expect(ltrArrow.textContent).toBe("›");
+    expect(rtlArrow.textContent).toBe("‹");
+  });
+
+  it("clones node icon inputs so item rows do not steal shared nodes", () => {
+    const iconNode = document.createElement("span");
+    iconNode.textContent = "!";
+
+    const firstIcon = renderIcon(document, iconNode, {
+      item: { id: "warn", label: "Warn", icon: iconNode },
+      context: {}
+    });
+    const secondIcon = renderIcon(document, iconNode, {
+      item: { id: "warn-again", label: "Warn Again", icon: iconNode },
+      context: {}
+    });
+
+    expect(firstIcon.dataset.poprightIcon).toBe("");
+    expect(firstIcon.textContent).toBe("!");
+    expect(secondIcon.textContent).toBe("!");
+    expect(firstIcon.firstChild).not.toBe(iconNode);
+    expect(secondIcon.firstChild).not.toBe(iconNode);
   });
 });

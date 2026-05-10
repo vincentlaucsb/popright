@@ -2,9 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -19,7 +21,15 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run check
       - run: npm run build
-      - run: npm run test
+      - run: npm run test:coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          disable_search: true
+          flags: unit
+          fail_ci_if_error: true
       - run: npm run test:visual
       - name: Upload visual regression artifacts
         if: failure()

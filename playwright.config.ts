@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const visualPort = Number(process.env.POPRIGHT_VISUAL_PORT ?? 4174);
 const baseURL = `http://127.0.0.1:${visualPort}`;
+const node = JSON.stringify(process.execPath);
 
 export default defineConfig({
   testDir: "./tests/visual",
@@ -27,12 +28,13 @@ export default defineConfig({
     trace: "on-first-retry"
   },
   webServer: {
-    command: "npm run build && npm run build:demo && npm run serve:demo",
+    command: `${node} scripts/build.mjs && ${node} scripts/build-demo.mjs && ${node} scripts/serve-demo.mjs`,
     env: {
       PORT: String(visualPort)
     },
     url: baseURL,
-    timeout: 120_000
+    timeout: 120_000,
+    reuseExistingServer: true
   },
   projects: [
     {
