@@ -1,0 +1,25 @@
+name: Package Dry Run
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Verify core package contents
+        run: npm pack --dry-run --workspace popright
+      - name: Verify React package contents
+        run: npm pack --dry-run --workspace @popright/react

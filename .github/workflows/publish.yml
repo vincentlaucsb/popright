@@ -1,0 +1,51 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish, such as 0.1.0"
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish-${{ github.ref_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - run: npm install -g npm@^11.5.1
+      - run: npm --version
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - run: npm run test
+      - run: npm run build:demo
+      - run: node scripts/verify-release-tag.mjs
+        env:
+          GITHUB_REF_NAME: ${{ inputs.tag || github.ref_name }}
+
+      - name: Publish core package
+        run: npm publish --workspace popright --access public
+
+      - name: Publish React package
+        run: npm publish --workspace @popright/react --access public
