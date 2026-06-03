@@ -63,8 +63,8 @@ async function createCollisionFixture(page: Page): Promise<void> {
           id: "more",
           label: "More",
           items: [
-            { id: "details", label: "Details" },
-            { id: "source", label: "Source" }
+            { id: "details", label: "Details that need a lot of horizontal room" },
+            { id: "source", label: "Source that also needs a lot of horizontal room" }
           ]
         }
       ]
@@ -98,6 +98,16 @@ test("demo page dark theme", async ({ page }) => {
   await expect(page).toHaveScreenshot("demo-page-dark.png", {
     fullPage: true
   });
+});
+
+test("demo automatic theme follows dark OS preference", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await gotoDemo(page);
+
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "automatic");
+  await expect.poll(() =>
+    page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--demo-bg").trim())
+  ).toBe("#121212");
 });
 
 test("page context menu opened from right click", async ({ page }) => {
@@ -187,12 +197,18 @@ test("right-edge submenu stays inside the viewport", async ({ page }) => {
   await createCollisionFixture(page);
 
   await page.locator("#right-submenu").click();
-  await page.getByRole("menuitem", { name: "More" }).dispatchEvent("pointermove", {
+  const trigger = page.getByRole("menuitem", { name: "More" });
+  await trigger.dispatchEvent("pointermove", {
     bubbles: true,
     pointerType: "mouse"
   });
 
   await expect(page.getByRole("menu")).toHaveCount(2);
+  const triggerBox = await trigger.boundingBox();
+  const childBox = await page.locator("[data-popright-menu]").last().boundingBox();
+  expect(triggerBox).not.toBeNull();
+  expect(childBox).not.toBeNull();
+  expect(childBox!.x + childBox!.width).toBeLessThanOrEqual(triggerBox!.x + 3);
   await expectInsideViewport(page);
 });
 

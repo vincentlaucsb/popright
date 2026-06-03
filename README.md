@@ -51,6 +51,8 @@ const dropdown = createDropdownMenu(document.querySelector("#file-button")!, {
 dropdown.destroy();
 ```
 
+For a complete vanilla example with dynamic items, submenus, and shared context/dropdown behavior, see [examples/vanilla/demo.js](examples/vanilla/demo.js).
+
 ## React Usage
 
 ```tsx
@@ -100,6 +102,6 @@ npm run build:demo
 npm run serve:demo
 ```
 
-The built demo is written to `dist-demo/index.html` and should be served at `http://localhost:4173`.
+`npm run serve:demo` rebuilds stale package and demo output before serving `dist-demo/index.html` at `http://localhost:4173`. `npm run build:demo` is still available for CI and publishing workflows that only need the static files.
 
 The workspace is intentionally dependency-light while the core API settles.

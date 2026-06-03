@@ -28,7 +28,7 @@ export default defineConfig({
     trace: "on-first-retry"
   },
   webServer: {
-    command: `${node} scripts/build.mjs && ${node} scripts/build-demo.mjs && ${node} scripts/serve-demo.mjs`,
+    command: `${node} scripts/serve-demo.mjs`,
     env: {
       PORT: String(visualPort)
     },

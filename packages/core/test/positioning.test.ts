@@ -22,6 +22,10 @@ describe("menu positioning", () => {
     expect(resolveAxisPosition(290, 100, 300, 8)).toBe(190);
   });
 
+  it("uses an explicit fallback before generic flipping", () => {
+    expect(resolveAxisPosition(292, 120, 320, 8, 70)).toBe(70);
+  });
+
   it("shifts right when the preferred point overflows the left edge", () => {
     expect(resolveAxisPosition(-30, 120, 400, 8)).toBe(8);
   });

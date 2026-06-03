@@ -42,3 +42,9 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
       - run: npm run build:demo
+      - name: Verify core package contents
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: npm pack --dry-run --workspace popright
+      - name: Verify React package contents
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: npm pack --dry-run --workspace @popright/react

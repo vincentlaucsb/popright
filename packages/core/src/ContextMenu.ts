@@ -324,6 +324,8 @@ export class ContextMenu {
     const position = computeMenuPosition({
       preferredLeft: preferred.left,
       preferredTop: preferred.top,
+      fallbackLeft: preferred.fallbackLeft,
+      fallbackTop: preferred.fallbackTop,
       width: rect.width,
       height: rect.height,
       viewportWidth,
@@ -338,7 +340,7 @@ export class ContextMenu {
     root.style.top = `${position.top}px`;
   }
 
-  getPreferredPosition(input: OpenInput, rect: DOMRect): { left: number; top: number } {
+  getPreferredPosition(input: OpenInput, rect: DOMRect): { left: number; top: number; fallbackLeft?: number; fallbackTop?: number } {
     if (this.options.placement !== "target" || !input.target) {
       return { left: input.x ?? 0, top: input.y ?? 0 };
     }
@@ -363,15 +365,31 @@ export class ContextMenu {
     cross += alignOffset;
 
     if (side === "top") {
-      return { left: cross, top: targetRect.top - rect.height - sideOffset };
+      return {
+        left: cross,
+        top: targetRect.top - rect.height - sideOffset,
+        fallbackTop: targetRect.bottom + sideOffset
+      };
     }
     if (side === "right") {
-      return { left: targetRect.right + sideOffset, top: cross };
+      return {
+        left: targetRect.right + sideOffset,
+        top: cross,
+        fallbackLeft: targetRect.left - rect.width - sideOffset
+      };
     }
     if (side === "left") {
-      return { left: targetRect.left - rect.width - sideOffset, top: cross };
+      return {
+        left: targetRect.left - rect.width - sideOffset,
+        top: cross,
+        fallbackLeft: targetRect.right + sideOffset
+      };
     }
-    return { left: cross, top: targetRect.bottom + sideOffset };
+    return {
+      left: cross,
+      top: targetRect.bottom + sideOffset,
+      fallbackTop: targetRect.top - rect.height - sideOffset
+    };
   }
 
   get isOpen(): boolean {

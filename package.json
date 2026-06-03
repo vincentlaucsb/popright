@@ -14,6 +14,7 @@
     "test:coverage": "vitest run --coverage --pool=threads packages",
     "test:visual": "playwright test",
     "test:visual:update-screenshots": "playwright test --update-snapshots",
+    "version:bump": "node scripts/bump-version.mjs",
     "build:demo": "node scripts/build-demo.mjs",
     "serve:demo": "node scripts/serve-demo.mjs"
   },
