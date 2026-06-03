@@ -1,6 +1,8 @@
 export interface MenuPositionInput {
   preferredLeft: number;
   preferredTop: number;
+  fallbackLeft?: number;
+  fallbackTop?: number;
   width: number;
   height: number;
   viewportWidth: number;
@@ -25,8 +27,8 @@ export interface MenuPosition {
  */
 export function computeMenuPosition(input: MenuPositionInput): MenuPosition {
   const padding = Math.max(0, input.padding);
-  const left = resolveAxisPosition(input.preferredLeft, input.width, input.viewportWidth, padding);
-  const top = resolveAxisPosition(input.preferredTop, input.height, input.viewportHeight, padding);
+  const left = resolveAxisPosition(input.preferredLeft, input.width, input.viewportWidth, padding, input.fallbackLeft);
+  const top = resolveAxisPosition(input.preferredTop, input.height, input.viewportHeight, padding, input.fallbackTop);
 
   if (input.strategy === "absolute") {
     return {
@@ -49,10 +51,17 @@ export function resolveAxisPosition(
   preferredStart: number,
   size: number,
   viewportSize: number,
-  padding: number
+  padding: number,
+  fallbackStart?: number
 ): number {
   const min = padding;
   const max = Math.max(padding, viewportSize - padding - size);
+  if (fallbackStart !== undefined && preferredStart + size > viewportSize - padding && fallbackStart >= padding) {
+    return Math.min(fallbackStart, max);
+  }
+  if (fallbackStart !== undefined && preferredStart < padding && fallbackStart + size <= viewportSize - padding) {
+    return Math.max(fallbackStart, min);
+  }
   if (preferredStart + size > viewportSize - padding && preferredStart - size >= padding) {
     return preferredStart - size;
   }

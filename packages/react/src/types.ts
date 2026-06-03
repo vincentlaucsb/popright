@@ -1,5 +1,6 @@
 import type {
   ContextMenuOptions,
+  DropdownMenuOptions,
   MenuActionItem,
   MenuChildItem,
   MenuChildItemsInput,
@@ -15,16 +16,25 @@ import type * as React from "react";
 
 export type ItemMergeMode = "append" | "prepend" | "replace-with-data" | "replace-with-composition";
 
-export interface UseContextMenuReturn<T extends HTMLElement = HTMLElement> {
+export interface UseContextMenuReturn<
+  T extends HTMLElement = HTMLElement,
+  TOptions extends ContextMenuOptions | DropdownMenuOptions = ContextMenuOptions
+> {
   ref: React.RefCallback<T>;
   open: (input: OpenInput) => void;
   close: () => void;
-  update: (options: Partial<ContextMenuOptions>) => void;
+  update: (options: Partial<TOptions>) => void;
 }
 
 export interface ContextMenuRootProps extends Omit<ContextMenuOptions, "items"> {
   children: React.ReactNode;
   items?: ContextMenuOptions["items"];
+  itemMergeMode?: ItemMergeMode;
+}
+
+export interface DropdownMenuRootProps extends Omit<DropdownMenuOptions, "items"> {
+  children: React.ReactNode;
+  items?: DropdownMenuOptions["items"];
   itemMergeMode?: ItemMergeMode;
 }
 
@@ -34,6 +44,7 @@ export interface ContextMenuTriggerProps<T extends HTMLElement = HTMLElement> {
   context?: unknown;
   disabled?: boolean;
   onContextMenu?: React.MouseEventHandler<T>;
+  onClick?: React.MouseEventHandler<T>;
 }
 
 export interface ContextMenuContentProps {

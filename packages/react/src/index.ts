@@ -1,4 +1,4 @@
-export { useContextMenu } from "./hook.js";
+export { useContextMenu, useDropdownMenu } from "./hook.js";
 export {
   ContextMenu,
   ContextMenuContent,
@@ -10,7 +10,8 @@ export {
   ContextMenuSubmenu,
   ContextMenuSubmenuContent,
   ContextMenuSubmenuTrigger,
-  ContextMenuTrigger
+  ContextMenuTrigger,
+  DropdownMenu
 } from "./components.js";
 export type {
   ContextMenuContentProps,
@@ -24,6 +25,7 @@ export type {
   ContextMenuSubmenuProps,
   ContextMenuSubmenuTriggerProps,
   ContextMenuTriggerProps,
+  DropdownMenuRootProps,
   ItemMergeMode,
   UseContextMenuReturn
 } from "./types.js";

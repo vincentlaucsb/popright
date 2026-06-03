@@ -1,8 +1,30 @@
-import type { ContextMenu } from "./ContextMenu.js";
 import type { CloseReason, OpenInput } from "./types.js";
 
+/**
+ * Root menu behavior owned by `MenuController`.
+ *
+ * The controller deliberately depends on this narrow contract rather than a
+ * concrete class so context menus, dropdowns, and future menu surfaces can
+ * share the same active-menu invariant without forcing a fixed inheritance
+ * tree.
+ */
+export interface ControlledMenu {
+  /** The rendered root is not used by the controller, but is useful for tests and diagnostics. */
+  readonly root: HTMLElement | null;
+
+  /** Assigned by the controller and used for same-depth native-event tie-breaking. */
+  registeredAt: number;
+
+  openNow(input: OpenInput): void;
+  close(reason?: CloseReason, nativeEvent?: Event): void;
+  getTargetDepth(target: EventTarget | null): number;
+  hasTargets(): boolean;
+  canOpenFromNativeEvent(event: Event): boolean;
+  getClosestTarget(target: EventTarget | null): Element | undefined;
+}
+
 interface OpenCandidate {
-  menu: ContextMenu;
+  menu: ControlledMenu;
   input: OpenInput;
   targetDepth: number;
   registeredAt: number;
@@ -18,10 +40,10 @@ interface OpenCandidate {
  */
 export class MenuController {
   /** Live root menus registered with this controller; submenus are intentionally excluded. */
-  #menus = new Set<ContextMenu>();
+  #menus = new Set<ControlledMenu>();
 
   /** The one root menu currently allowed to own global listeners and focus restoration. */
-  #activeMenu: ContextMenu | null = null;
+  #activeMenu: ControlledMenu | null = null;
 
   /** Monotonic registration order used as the tie-breaker for equally specific targets. */
   #registeredCounter = 0;
@@ -35,19 +57,19 @@ export class MenuController {
    */
   #eventCandidates = new WeakMap<Event, OpenCandidate[]>();
 
-  register(menu: ContextMenu): void {
+  register(menu: ControlledMenu): void {
     this.#menus.add(menu);
     menu.registeredAt = ++this.#registeredCounter;
   }
 
-  unregister(menu: ContextMenu): void {
+  unregister(menu: ControlledMenu): void {
     this.#menus.delete(menu);
     if (this.#activeMenu === menu) {
       this.#activeMenu = null;
     }
   }
 
-  requestOpen(menu: ContextMenu, input: OpenInput): void {
+  requestOpen(menu: ControlledMenu, input: OpenInput): void {
     const event = input.triggerEvent;
     if (!event) {
       this.#open(menu, input);
@@ -131,24 +153,24 @@ export class MenuController {
     this.#activeMenu?.close(reason, nativeEvent);
   }
 
-  setActive(menu: ContextMenu): void {
+  setActive(menu: ControlledMenu): void {
     if (this.#activeMenu && this.#activeMenu !== menu) {
       this.#activeMenu.close("reopen");
     }
     this.#activeMenu = menu;
   }
 
-  clearActive(menu: ContextMenu): void {
+  clearActive(menu: ControlledMenu): void {
     if (this.#activeMenu === menu) {
       this.#activeMenu = null;
     }
   }
 
-  get activeMenu(): ContextMenu | null {
+  get activeMenu(): ControlledMenu | null {
     return this.#activeMenu;
   }
 
-  #open(menu: ContextMenu, input: OpenInput): void {
+  #open(menu: ControlledMenu, input: OpenInput): void {
     this.setActive(menu);
     menu.openNow(input);
   }

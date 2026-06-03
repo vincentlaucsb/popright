@@ -1,26 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { MenuController } from "../src/MenuController.js";
+import type { ControlledMenu } from "../src/MenuController.js";
 import type { CloseReason, OpenInput } from "../src/types.js";
 
-interface TestMenu {
+interface TestMenu extends ControlledMenu {
   name: string;
   opened: OpenInput[];
   closed: CloseReason[];
-  registeredAt: number;
   targetDepth: number;
   hasTargetsValue: boolean;
   triggerType: string;
-  openNow(input: OpenInput): void;
-  close(reason?: CloseReason): void;
-  getTargetDepth(target?: EventTarget | null): number;
-  hasTargets(): boolean;
-  canOpenFromNativeEvent(event: Event): boolean;
-  getClosestTarget(target?: EventTarget | null): Element | undefined;
 }
 
 function createTestMenu(name: string, targetDepth = 0): TestMenu {
   return {
     name,
+    root: null,
     opened: [],
     closed: [],
     registeredAt: 0,
@@ -54,10 +49,10 @@ describe("MenuController", () => {
     const first = createTestMenu("first");
     const second = createTestMenu("second");
 
-    controller.register(first as never);
-    controller.register(second as never);
-    controller.requestOpen(first as never, { x: 1, y: 2 });
-    controller.requestOpen(second as never, { x: 3, y: 4 });
+    controller.register(first);
+    controller.register(second);
+    controller.requestOpen(first, { x: 1, y: 2 });
+    controller.requestOpen(second, { x: 3, y: 4 });
 
     expect(first.opened).toHaveLength(1);
     expect(first.closed).toEqual(["reopen"]);
@@ -71,10 +66,10 @@ describe("MenuController", () => {
     const inner = createTestMenu("inner", 0);
     const event = new Event("contextmenu");
 
-    controller.register(outer as never);
-    controller.register(inner as never);
-    controller.requestOpen(outer as never, { triggerEvent: event });
-    controller.requestOpen(inner as never, { triggerEvent: event });
+    controller.register(outer);
+    controller.register(inner);
+    controller.requestOpen(outer, { triggerEvent: event });
+    controller.requestOpen(inner, { triggerEvent: event });
     await Promise.resolve();
 
     expect(outer.opened).toHaveLength(0);
@@ -88,10 +83,10 @@ describe("MenuController", () => {
     const second = createTestMenu("second", 0);
     const event = new Event("contextmenu");
 
-    controller.register(first as never);
-    controller.register(second as never);
-    controller.requestOpen(first as never, { triggerEvent: event });
-    controller.requestOpen(second as never, { triggerEvent: event });
+    controller.register(first);
+    controller.register(second);
+    controller.requestOpen(first, { triggerEvent: event });
+    controller.requestOpen(second, { triggerEvent: event });
     await Promise.resolve();
 
     expect(first.opened).toHaveLength(0);
@@ -105,9 +100,9 @@ describe("MenuController", () => {
     const row = createTestMenu("row", 1);
     const event = new Event("contextmenu");
 
-    controller.register(row as never);
-    controller.register(body as never);
-    controller.requestOpen(body as never, { triggerEvent: event });
+    controller.register(row);
+    controller.register(body);
+    controller.requestOpen(body, { triggerEvent: event });
     await Promise.resolve();
 
     expect(body.opened).toHaveLength(0);

@@ -47,6 +47,11 @@ describe("theme utilities", () => {
     expect(normalizeThemeInput(store).tokens?.bg).toBe("#111");
   });
 
+  it("normalizes system to automatic for the public theme mode", () => {
+    expect(normalizeThemeInput("system").mode).toBe("automatic");
+    expect(normalizeThemeInput("automatic").mode).toBe("automatic");
+  });
+
   it("clones nested theme objects", () => {
     const clone = cloneTheme(BUILT_IN_THEME);
     clone.tokens.bg = "#000";

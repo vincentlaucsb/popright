@@ -62,10 +62,10 @@ describe("theme store", () => {
       }
     }));
     unsubscribe();
-    contextMenuTheme.set("system");
+    contextMenuTheme.set("automatic");
 
-    expect(seen.slice(-3)).toEqual(["system", "dark", "light"]);
-    expect(contextMenuTheme.get().mode).toBe("system");
+    expect(seen.slice(-3)).toEqual(["automatic", "dark", "light"]);
+    expect(contextMenuTheme.get().mode).toBe("automatic");
   });
 });
 
@@ -73,5 +73,13 @@ describe("default controller", () => {
   it("exposes only one active menu slot", () => {
     const controller = __getDefaultControllerForTests();
     expect(controller.activeMenu).toBeNull();
+  });
+});
+
+describe("CommonJS build", () => {
+  it("exposes core factories through the require entrypoint", async () => {
+    const cjs = await import("../dist/index.cjs");
+    expect(cjs.createContextMenu).toEqual(expect.any(Function));
+    expect(cjs.createDropdownMenu).toEqual(expect.any(Function));
   });
 });

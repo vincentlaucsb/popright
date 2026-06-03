@@ -1,4 +1,4 @@
-import type { ContextMenuOptions, MenuChildItem, MenuItem } from "popright";
+import type { ContextMenuOptions, DropdownMenuOptions, MenuChildItem, MenuItem } from "popright";
 import * as React from "react";
 import { getMarker } from "./markers.js";
 import type {
@@ -12,6 +12,7 @@ import type {
   ContextMenuSubmenuContentProps,
   ContextMenuSubmenuProps,
   ContextMenuSubmenuTriggerProps,
+  DropdownMenuRootProps,
   ItemMergeMode
 } from "./types.js";
 
@@ -21,6 +22,16 @@ export interface CompositionResult {
 }
 
 export function composeContextMenuOptions(props: ContextMenuRootProps): ContextMenuOptions {
+  return composeMenuOptions(props);
+}
+
+export function composeDropdownMenuOptions(props: DropdownMenuRootProps): DropdownMenuOptions {
+  return composeMenuOptions(props);
+}
+
+function composeMenuOptions<T extends ContextMenuOptions | DropdownMenuOptions>(
+  props: ContextMenuRootProps | DropdownMenuRootProps
+): T {
   const { children, items, itemMergeMode = "append", ...options } = props;
   const composition = collectContent(children);
   const composedItems = composition.items;
@@ -30,7 +41,7 @@ export function composeContextMenuOptions(props: ContextMenuRootProps): ContextM
     ...options,
     id: composition.contentId ?? options.id,
     items: mergedItems
-  };
+  } as T;
 }
 
 export function collectContent(children: React.ReactNode): CompositionResult {
@@ -71,7 +82,7 @@ function findContentElement(children: React.ReactNode): React.ReactElement | nul
 }
 
 function mergeItems(
-  dataItems: ContextMenuRootProps["items"],
+  dataItems: ContextMenuRootProps["items"] | DropdownMenuRootProps["items"],
   composedItems: MenuItem[],
   mode: ItemMergeMode
 ): ContextMenuOptions["items"] {

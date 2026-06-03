@@ -1,8 +1,14 @@
 import * as React from "react";
 import { markComponent } from "./markers.js";
 import { composeRefs, getElementRef } from "./refs.js";
-import { collectContent, composeContextMenuOptions, findTriggerElement, hasStructuredChildren } from "./compose.js";
-import { useContextMenu } from "./hook.js";
+import {
+  collectContent,
+  composeContextMenuOptions,
+  composeDropdownMenuOptions,
+  findTriggerElement,
+  hasStructuredChildren
+} from "./compose.js";
+import { useContextMenu, useDropdownMenu } from "./hook.js";
 import type {
   ContextMenuContentProps,
   ContextMenuHeaderProps,
@@ -14,7 +20,8 @@ import type {
   ContextMenuSubmenuContentProps,
   ContextMenuSubmenuProps,
   ContextMenuSubmenuTriggerProps,
-  ContextMenuTriggerProps
+  ContextMenuTriggerProps,
+  DropdownMenuRootProps
 } from "./types.js";
 
 /**
@@ -53,13 +60,52 @@ export function ContextMenu({ children, ...props }: ContextMenuRootProps): React
   if (triggerProps!.asChild && React.isValidElement(triggerChild)) {
     const childProps = triggerChild.props as { onContextMenu?: React.MouseEventHandler<Element> };
     return cloneWithRef(triggerChild, menu.ref, {
-      onContextMenu: composeContextMenuHandlers(childProps.onContextMenu, triggerProps!.onContextMenu),
+      onContextMenu: composeEventHandlers(childProps.onContextMenu, triggerProps!.onContextMenu),
       "data-popright-trigger-context": triggerProps!.context === undefined ? undefined : ""
     });
   }
 
   return (
     <span ref={menu.ref} onContextMenu={triggerProps!.onContextMenu as React.MouseEventHandler<HTMLSpanElement>}>
+      {triggerProps!.children}
+    </span>
+  );
+}
+
+export function DropdownMenu({ children, ...props }: DropdownMenuRootProps): React.ReactElement {
+  const structured = hasStructuredChildren(children);
+  const triggerElement = structured ? findTriggerElement(children) : null;
+  const triggerProps = triggerElement?.props as ContextMenuTriggerProps | undefined;
+  const options = structured
+    ? composeDropdownMenuOptions({
+        children,
+        ...props,
+        context: triggerProps?.context,
+        trigger: triggerProps?.disabled ? "manual" : props.trigger
+      })
+    : (props as DropdownMenuRootProps & { items: NonNullable<DropdownMenuRootProps["items"]> });
+  const menu = useDropdownMenu(options);
+
+  if (!structured) {
+    const child = React.Children.only(children) as React.ReactElement;
+    return cloneWithRef(child, menu.ref);
+  }
+
+  if (!triggerElement) {
+    return <>{children}</>;
+  }
+
+  const triggerChild = triggerProps!.children;
+  if (triggerProps!.asChild && React.isValidElement(triggerChild)) {
+    const childProps = triggerChild.props as { onClick?: React.MouseEventHandler<Element> };
+    return cloneWithRef(triggerChild, menu.ref, {
+      onClick: composeEventHandlers(childProps.onClick, triggerProps!.onClick),
+      "data-popright-trigger-dropdown": triggerProps!.context === undefined ? undefined : ""
+    });
+  }
+
+  return (
+    <span ref={menu.ref} onClick={triggerProps!.onClick as React.MouseEventHandler<HTMLSpanElement>}>
       {triggerProps!.children}
     </span>
   );
@@ -129,7 +175,7 @@ function cloneWithRef<T extends HTMLElement>(
   } as React.Attributes);
 }
 
-function composeContextMenuHandlers<T extends Element>(
+function composeEventHandlers<T extends Element>(
   first?: React.MouseEventHandler<T>,
   second?: React.MouseEventHandler<T>
 ): React.MouseEventHandler<T> | undefined {
