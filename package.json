@@ -15,6 +15,9 @@
     "test:visual": "playwright test",
     "test:visual:update-screenshots": "playwright test --update-snapshots",
     "version:bump": "node scripts/bump-version.mjs",
+    "version:bump:major": "node scripts/bump-version.mjs --major",
+    "version:bump:minor": "node scripts/bump-version.mjs --minor",
+    "version:bump:patch": "node scripts/bump-version.mjs --patch",
     "build:demo": "node scripts/build-demo.mjs",
     "serve:demo": "node scripts/serve-demo.mjs"
   },

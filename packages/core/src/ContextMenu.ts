@@ -256,6 +256,10 @@ export class ContextMenu {
     return this.targets.some((candidate) => containsEventTarget(candidate, target));
   }
 
+  containsCurrentTarget(target: EventTarget | null): boolean {
+    return Boolean(this.currentContext?.target && containsEventTarget(this.currentContext.target, target));
+  }
+
   getTargetDepth(eventTarget: EventTarget | null): number {
     if (!eventTarget) {
       return -1;
@@ -406,7 +410,7 @@ export class ContextMenu {
         if (type === "contextmenu") {
           event.preventDefault();
         }
-        if (type === "click" && this.isOpen) {
+        if (type === "click" && this.isOpen && this.containsCurrentTarget(event.currentTarget)) {
           this.close("manual", event);
           return;
         }
@@ -453,6 +457,9 @@ export class ContextMenu {
         return;
       }
       const next = event.relatedTarget;
+      if (this.options.trigger === "click" && this.containsTarget(next)) {
+        return;
+      }
       if (next instanceof Node && (this.root.contains(next) || this.childMenu?.containsRoot(next))) {
         return;
       }

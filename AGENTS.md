@@ -6,6 +6,12 @@ Use `.temp/` for temporary working plans, migration notes, scratch checklists, a
 
 Keep durable project documentation in tracked files such as `README.md`, `DESIGN.md`, or focused docs that are meant to survive beyond the current task.
 
+## Version Bumps
+
+Use `npm run version:bump:major`, `npm run version:bump:minor`, or `npm run version:bump:patch` for package version changes. These aliases avoid npm flag-forwarding ambiguity. The underlying `scripts/bump-version.mjs` script must update every durable version reference it owns, including workspace package manifests, internal package dependency pins, and lockfile package metadata.
+
+If a version reference cannot be updated by the script, record that exception in this section before relying on a manual bump. Include what file owns the exception and why it is intentionally outside the script.
+
 ## Comments
 
 Write comments as if future maintainers are smart but busy. Do not explain what the next line of code already says. Explain why a decision exists, what invariant must not be broken, and what browser or lifecycle edge case made the code take its shape.
