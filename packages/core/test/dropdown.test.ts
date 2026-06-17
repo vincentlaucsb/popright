@@ -29,6 +29,27 @@ describe("DropdownMenu", () => {
     menu.destroy();
   });
 
+  it("closes instead of reopening when its trigger is clicked while open", async () => {
+    const button = document.createElement("button");
+    document.body.append(button);
+
+    const menu = createDropdownMenu(button, {
+      items: [{ id: "new", label: "New" }]
+    });
+
+    button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await Promise.resolve();
+    expect(menu.isOpen).toBe(true);
+
+    button.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await Promise.resolve();
+
+    expect(menu.isOpen).toBe(false);
+
+    menu.destroy();
+  });
+
   it("shares one active root menu with context menus", async () => {
     const button = document.createElement("button");
     const row = document.createElement("div");
