@@ -8,10 +8,12 @@ const LOCKFILE_PATH = "package-lock.json";
 const INTERNAL_PACKAGE_NAMES = new Set(["popright", "@popright/react"]);
 
 const bumpTypes = ["major", "minor", "patch"];
-const selectedBumps = bumpTypes.filter((type) => process.argv.includes(`--${type}`));
+const selectedBumps = bumpTypes.filter(
+  (type) => process.argv.includes(`--${type}`) || process.env[`npm_config_${type}`] === "true"
+);
 
 if (selectedBumps.length !== 1) {
-  console.error("Usage: npm run version:bump -- --major|--minor|--patch");
+  console.error("Usage: npm run version:bump:major|version:bump:minor|version:bump:patch");
   process.exit(1);
 }
 

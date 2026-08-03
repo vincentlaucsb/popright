@@ -134,6 +134,17 @@ test("context menu opened from action button", async ({ page }) => {
   await expect(menu).toHaveScreenshot("album-action-menu.png");
 });
 
+test("action button toggles its open menu closed", async ({ page }) => {
+  await gotoDemo(page);
+  const actions = albumRow(page, "Kill 'Em All").getByRole("button", { name: "Actions" });
+
+  await actions.click();
+  await expect(page.getByRole("menu")).toBeVisible();
+
+  await actions.click();
+  await expect(page.getByRole("menu")).toHaveCount(0);
+});
+
 test("rtl dropdown uses mirrored submenu affordance", async ({ page }) => {
   await gotoDemo(page);
   await page.evaluate(async () => {
