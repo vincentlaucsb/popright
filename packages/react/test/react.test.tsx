@@ -402,13 +402,20 @@ describe("ContextMenu", () => {
 
 describe("DropdownMenu", () => {
   it("wraps the dropdown hook in simple mode", () => {
-    const instance = createInstance();
-    createDropdownMenuMock.mockReturnValue(instance);
+    const firstInstance = createInstance();
+    const secondInstance = createInstance();
+    createDropdownMenuMock.mockReturnValueOnce(firstInstance).mockReturnValueOnce(secondInstance);
+
+    function Test({ label }: { label: string }) {
+      return (
+        <DropdownMenu items={[{ id: "new", label: "New" }]}>
+          <button>{label}</button>
+        </DropdownMenu>
+      );
+    }
 
     const { container, root } = render(
-      <DropdownMenu items={[{ id: "new", label: "New" }]}>
-        <button>File</button>
-      </DropdownMenu>
+      <Test label="File" />
     );
 
     const button = container.querySelector("button");
@@ -416,7 +423,15 @@ describe("DropdownMenu", () => {
       items: [{ id: "new", label: "New" }]
     });
 
+    act(() => {
+      root.render(<Test label="File menu" />);
+    });
+
+    expect(createDropdownMenuMock).toHaveBeenCalledOnce();
+    expect(firstInstance.destroy).not.toHaveBeenCalled();
+
     unmount(root, container);
+    expect(firstInstance.destroy).toHaveBeenCalledOnce();
   });
 
   it("normalizes structured dropdown content", () => {

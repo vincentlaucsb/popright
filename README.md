@@ -51,7 +51,7 @@ const dropdown = createDropdownMenu(document.querySelector("#file-button")!, {
 dropdown.destroy();
 ```
 
-For a complete vanilla example with dynamic items, submenus, and shared context/dropdown behavior, see [examples/vanilla/demo.js](examples/vanilla/demo.js).
+For a complete vanilla example with dynamic items, submenus, and shared context/dropdown behavior, see [the live demo](https://vincentlaucsb.github.io/popright/) or [examples/vanilla/demo.js](examples/vanilla/demo.js).
 
 ## React Usage
 
@@ -82,6 +82,8 @@ import { ContextMenu, DropdownMenu } from "@popright/react";
 </DropdownMenu>;
 ```
 
+The [React 19 live demo](https://vincentlaucsb.github.io/popright/react/) runs simple mode and a forwarded-ref trigger under `StrictMode`.
+
 ## Design Goals
 
 - Context menus and dropdowns share one controller and one active-menu invariant.
@@ -102,6 +104,6 @@ npm run build:demo
 npm run serve:demo
 ```
 
-`npm run serve:demo` rebuilds stale package and demo output before serving `dist-demo/index.html` at `http://localhost:4173`. `npm run build:demo` is still available for CI and publishing workflows that only need the static files.
+`npm run serve:demo` rebuilds stale package and demo output before serving the vanilla demo at `http://localhost:4173` and the React demo at `http://localhost:4173/react/`. `npm run build:demo` is still available for CI and publishing workflows that only need the static files.
 
 The workspace is intentionally dependency-light while the core API settles.

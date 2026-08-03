@@ -19,6 +19,11 @@ function albumRow(page: Page, title: string) {
   return page.locator(".album-row").filter({ has: page.locator(".album-title", { hasText: title }) });
 }
 
+async function gotoReactDemo(page: Page): Promise<void> {
+  await page.goto("/react/");
+  await expect(page.getByRole("heading", { name: "Dropdown menus that stay attached" })).toBeVisible();
+}
+
 async function expectInsideViewport(page: Page, selector = "[data-popright-menu]"): Promise<void> {
   const box = await page.locator(selector).last().boundingBox();
   const viewport = page.viewportSize();
@@ -143,6 +148,26 @@ test("action button toggles its open menu closed", async ({ page }) => {
 
   await actions.click();
   await expect(page.getByRole("menu")).toHaveCount(0);
+});
+
+test("React simple-mode and forwardRef dropdowns work in StrictMode", async ({ page }) => {
+  await gotoReactDemo(page);
+  const fileTrigger = page.getByRole("button", { name: "File" });
+
+  await fileTrigger.click();
+  await expect(page.getByRole("menu")).toBeVisible();
+  await expect(page.getByTestId("open-count")).toHaveText("1");
+
+  await fileTrigger.click();
+  await expect(page.getByRole("menu")).toHaveCount(0);
+
+  await fileTrigger.click();
+  await page.getByRole("menuitem", { name: /New document/ }).click();
+  await expect(page.getByText("New document created")).toBeVisible();
+  await expect(page.getByRole("menu")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "View" }).click();
+  await expect(page.getByRole("menuitem", { name: "Compact density" })).toBeVisible();
 });
 
 test("rtl dropdown uses mirrored submenu affordance", async ({ page }) => {
