@@ -1,10 +1,10 @@
 import { readFile, writeFile } from "node:fs/promises";
+import { spawn } from "node:child_process";
 
 const PACKAGE_PATHS = [
   "packages/core/package.json",
   "packages/react/package.json"
 ];
-const LOCKFILE_PATH = "package-lock.json";
 const INTERNAL_PACKAGE_NAMES = new Set(["popright", "@popright/react"]);
 
 const bumpTypes = ["major", "minor", "patch"];
@@ -51,6 +51,29 @@ async function writeJson(path, value) {
   await writeFile(path, `${JSON.stringify(value, null, 2)}\n`);
 }
 
+function regenerateLockfile() {
+  const npmCli = process.env.npm_execpath;
+  const command = npmCli ? process.execPath : process.platform === "win32" ? "npm.cmd" : "npm";
+  const args = [
+    ...(npmCli ? [npmCli] : []),
+    "install",
+    "--package-lock-only",
+    "--ignore-scripts"
+  ];
+
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, { stdio: "inherit" });
+    child.on("error", reject);
+    child.on("exit", (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`npm install --package-lock-only exited with ${code}`));
+      }
+    });
+  });
+}
+
 function updateInternalDependencyRefs(dependencies, currentVersion, nextVersion) {
   if (!dependencies) {
     return;
@@ -86,21 +109,6 @@ for (const [index, packageJson] of packageJsons.entries()) {
   await writeJson(PACKAGE_PATHS[index], packageJson);
 }
 
-const lockfile = await readJson(LOCKFILE_PATH);
-
-for (const packagePath of PACKAGE_PATHS) {
-  const lockPackage = lockfile.packages?.[packagePath.replace(/\\/g, "/")];
-
-  if (lockPackage?.version === currentVersion) {
-    lockPackage.version = nextVersion;
-  }
-
-  updateInternalDependencyRefs(lockPackage?.dependencies, currentVersion, nextVersion);
-  updateInternalDependencyRefs(lockPackage?.devDependencies, currentVersion, nextVersion);
-  updateInternalDependencyRefs(lockPackage?.peerDependencies, currentVersion, nextVersion);
-  updateInternalDependencyRefs(lockPackage?.optionalDependencies, currentVersion, nextVersion);
-}
-
-await writeJson(LOCKFILE_PATH, lockfile);
+await regenerateLockfile();
 
 console.log(`Bumped workspace package versions from ${currentVersion} to ${nextVersion}.`);

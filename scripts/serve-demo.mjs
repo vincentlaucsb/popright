@@ -8,6 +8,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const demoRoot = path.join(root, "dist-demo");
 const port = Number(process.env.PORT ?? 4173);
 const coreDist = path.join(root, "packages", "core", "dist");
+const reactDist = path.join(root, "packages", "react", "dist");
 let activeRefresh;
 
 const mimeTypes = {
@@ -18,6 +19,7 @@ const mimeTypes = {
 
 const coreInputs = [
   path.join(root, "packages", "core", "src"),
+  path.join(root, "packages", "react", "src"),
   path.join(root, "packages", "core", "package.json"),
   path.join(root, "packages", "core", "tsconfig.json"),
   path.join(root, "scripts", "build.mjs")
@@ -26,6 +28,7 @@ const coreInputs = [
 const demoInputs = [
   path.join(root, "examples", "vanilla", "index.html"),
   path.join(root, "examples", "vanilla", "demo.js"),
+  path.join(root, "examples", "react"),
   path.join(root, "scripts", "build-demo.mjs")
 ];
 
@@ -85,6 +88,10 @@ function isCoreBuildStale() {
     {
       inputs: [path.join(root, "packages", "core", "src", "styles", "dropdown.css")],
       output: path.join(coreDist, "dropdown.css")
+    },
+    {
+      inputs: [path.join(root, "packages", "react", "src")],
+      output: path.join(reactDist, "index.js")
     }
   ]);
 }
@@ -100,6 +107,10 @@ function isDemoBuildStale() {
     {
       inputs: [path.join(coreDist, "styles.css")],
       output: path.join(demoRoot, "assets", "core", "popright.css")
+    },
+    {
+      inputs: [path.join(reactDist, "index.js"), path.join(root, "examples", "react")],
+      output: path.join(demoRoot, "react", "index.html")
     }
   ]);
 }
@@ -153,7 +164,7 @@ const server = createServer(async (request, response) => {
     await refreshDemo();
     const url = new URL(request.url ?? "/", `http://localhost:${port}`);
     const pathname = decodeURIComponent(url.pathname);
-    const requested = pathname === "/" ? "/index.html" : pathname;
+    const requested = pathname === "/" ? "/index.html" : pathname.endsWith("/") ? `${pathname}index.html` : pathname;
     const filePath = path.resolve(demoRoot, `.${requested}`);
 
     if (!filePath.startsWith(demoRoot)) {

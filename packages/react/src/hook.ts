@@ -57,6 +57,9 @@ function useCoreMenu<T extends HTMLElement, TOptions extends ContextMenuOptions 
   const ref = React.useCallback(
     (node: T | null) => {
       if (nodeRef.current === node) {
+        if (node && !instanceRef.current) {
+          instanceRef.current = createMenu(node, optionsRef.current);
+        }
         return;
       }
 
@@ -72,7 +75,7 @@ function useCoreMenu<T extends HTMLElement, TOptions extends ContextMenuOptions 
         instanceRef.current = createMenu(node, optionsRef.current);
       }
     },
-    [destroyInstance]
+    [createMenu, destroyInstance]
   );
 
   React.useEffect(() => {
@@ -80,7 +83,12 @@ function useCoreMenu<T extends HTMLElement, TOptions extends ContextMenuOptions 
     instanceRef.current?.update(options);
   }, [options]);
 
-  React.useEffect(() => destroyInstance, [destroyInstance]);
+  React.useEffect(() => {
+    if (nodeRef.current && !instanceRef.current) {
+      instanceRef.current = createMenu(nodeRef.current, optionsRef.current);
+    }
+    return destroyInstance;
+  }, [createMenu, destroyInstance]);
 
   const open = React.useCallback(
     (input: OpenInput) => {

@@ -8,12 +8,22 @@ import * as React from "react";
  */
 export function composeRefs<T>(...refs: Array<React.Ref<T> | undefined>): React.RefCallback<T> {
   return (value) => {
+    const cleanups: Array<() => void> = [];
+
     for (const ref of refs) {
       if (typeof ref === "function") {
-        ref(value);
+        const cleanup = ref(value);
+        cleanups.push(typeof cleanup === "function" ? cleanup : () => ref(null));
       } else if (ref) {
         ref.current = value;
+        cleanups.push(() => {
+          ref.current = null;
+        });
       }
+    }
+
+    if (value !== null && Number.parseInt(React.version, 10) >= 19) {
+      return () => cleanups.forEach((cleanup) => cleanup());
     }
   };
 }
@@ -24,7 +34,11 @@ export function composeRefs<T>(...refs: Array<React.Ref<T> | undefined>): React.
  * React's public typing around element refs has shifted across versions; hiding
  * the cast here keeps the component wrapper from spreading that detail around.
  */
-export function getElementRef<T>(element: React.ReactElement): React.Ref<T> | undefined {
+export function getElementRef<T>(element: React.ReactElement | null): React.Ref<T> | undefined {
+  if (!element) {
+    return undefined;
+  }
+
   const propsRef = (element.props as { ref?: React.Ref<T> }).ref;
   if (propsRef !== undefined || React.version.startsWith("19.")) {
     return propsRef;
