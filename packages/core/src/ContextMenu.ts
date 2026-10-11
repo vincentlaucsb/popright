@@ -466,6 +466,11 @@ export class ContextMenu {
       this.close("blur", event);
     };
     const scrollListener = (event: Event) => {
+      // Internal scrolling leaves this menu's anchor intact, including portaled
+      // descendants. Outside scrolling still invalidates its opening geometry.
+      if (this.containsRoot(event.target)) {
+        return;
+      }
       if (this.options.closeOnScroll) {
         /**
          * Scroll invalidates the pointer/target geometry that opened the menu.
@@ -650,7 +655,7 @@ export class ContextMenu {
     if (!trigger) {
       return;
     }
-    if (this.childMenu?.itemsSource === item.items) {
+    if (this.childMenu?.isOpen && this.childMenu.itemsSource === item.items) {
       return;
     }
 

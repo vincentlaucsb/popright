@@ -96,6 +96,7 @@ describe("ContextMenu global close triggers", () => {
   it("closes on scroll by default", () => {
     vi.stubGlobal("document", {});
     vi.stubGlobal("HTMLElement", EventTarget);
+    vi.stubGlobal("Node", EventTarget);
     const { controller } = createControllerSpy();
     const menu = new ContextMenu(controller, null, {
       items: [{ id: "play", label: "Play" }]
@@ -116,6 +117,7 @@ describe("ContextMenu global close triggers", () => {
   it("closes on resize by default", () => {
     vi.stubGlobal("document", {});
     vi.stubGlobal("HTMLElement", EventTarget);
+    vi.stubGlobal("Node", EventTarget);
     const { controller } = createControllerSpy();
     const menu = new ContextMenu(controller, null, {
       items: [{ id: "play", label: "Play" }]
@@ -136,6 +138,7 @@ describe("ContextMenu global close triggers", () => {
   it("does not close on scroll and resize when opted out", () => {
     vi.stubGlobal("document", {});
     vi.stubGlobal("HTMLElement", EventTarget);
+    vi.stubGlobal("Node", EventTarget);
     const { controller } = createControllerSpy();
     const menu = new ContextMenu(controller, null, {
       closeOnResize: false,

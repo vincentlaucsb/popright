@@ -1,6 +1,6 @@
 {
   "name": "@popright/react",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "React adapter for Popright context menus.",
   "type": "module",
   "homepage": "https://github.com/vincentlaucsb/popright#readme",
@@ -22,7 +22,7 @@
     "typescript"
   ],
   "dependencies": {
-    "popright": "0.1.2"
+    "popright": "0.1.3"
   },
   "peerDependencies": {
     "react": ">=18"
