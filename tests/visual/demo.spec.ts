@@ -296,3 +296,66 @@ test("rtl dropdown start alignment stays inside the viewport", async ({ page }) 
   expect(Math.abs(menuBox!.x + menuBox!.width - (triggerBox!.x + triggerBox!.width))).toBeLessThanOrEqual(2);
   await expectInsideViewport(page);
 });
+
+test("scrollable dropdown stays open while wheeling and selects a later item", async ({ page }) => {
+  await gotoDemo(page);
+  await createCollisionFixture(page);
+  await page.evaluate(() => {
+    const button = document.createElement("button");
+    button.id = "long-dropdown";
+    button.textContent = "Long dropdown";
+    button.style.cssText = "position: fixed; left: 20px; top: 20px;";
+    document.body.append(button);
+    const api = window as unknown as {
+      __poprightCreateDropdownMenu: typeof import("../../packages/core/src/index.js").createDropdownMenu;
+    };
+    api.__poprightCreateDropdownMenu(button, {
+      maxHeight: 180,
+      items: Array.from({ length: 60 }, (_, index) => ({ id: String(index), label: `Scroll item ${index}` })),
+      onSelect: ({ id }) => button.dataset.selected = id
+    });
+  });
+  await page.locator("#long-dropdown").click();
+  const menu = page.getByRole("menu");
+  await menu.hover();
+  await page.mouse.wheel(0, 400);
+  await expect.poll(() => menu.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+  await expect(menu).toBeVisible();
+  const laterItem = menu.getByRole("menuitem", { name: "Scroll item 30", exact: true });
+  await laterItem.scrollIntoViewIfNeeded();
+  await laterItem.click();
+  await expect(page.locator("#long-dropdown")).toHaveAttribute("data-selected", "30");
+  await expect(menu).toHaveCount(0);
+
+  await page.locator("#long-dropdown").click();
+  await page.mouse.move(1000, 600);
+  await page.mouse.wheel(0, 300);
+  await expect(menu).toHaveCount(0);
+});
+
+test("scrolling a portaled submenu preserves its parent menu", async ({ page }) => {
+  await gotoDemo(page);
+  await page.evaluate(() => {
+    const api = window as unknown as {
+      __poprightCreateContextMenu: typeof import("../../packages/core/src/index.js").createContextMenu;
+    };
+    api.__poprightCreateContextMenu({
+      maxHeight: 180,
+      items: [{
+        type: "submenu", id: "more", label: "Scrollable submenu",
+        items: Array.from({ length: 60 }, (_, index) => ({ id: String(index), label: `Child ${index}` }))
+      }]
+    }).open({ x: 50, y: 50 });
+  });
+  await page.getByRole("menuitem", { name: "Scrollable submenu" }).hover();
+  await expect(page.getByRole("menu")).toHaveCount(2);
+  const child = page.locator("[data-popright-submenu]");
+  await child.hover();
+  await page.mouse.wheel(0, 400);
+  await expect.poll(() => child.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+  await expect(page.getByRole("menu")).toHaveCount(2);
+  const laterItem = child.getByRole("menuitem", { name: "Child 30", exact: true });
+  await laterItem.scrollIntoViewIfNeeded();
+  await laterItem.click();
+  await expect(page.getByRole("menu")).toHaveCount(0);
+});
