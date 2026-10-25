@@ -1,5 +1,39 @@
 import { expect, type Page, test } from "@playwright/test";
 
+test("focused menus expose their active row across keyboard navigation and submenus", async ({ page }) => {
+  await gotoDemo(page);
+  await createCollisionFixture(page);
+  await page.locator('#bottom-dropdown').click();
+  const root = page.getByRole('menu');
+  const active = async (menu: ReturnType<Page['getByRole']>, label: string) => {
+    await expect(menu).toBeFocused();
+    const id = await menu.getAttribute('aria-activedescendant');
+    expect(id).toBeTruthy();
+    await expect(page.locator(`[id="${id}"]`)).toHaveText(label);
+    await expect(page.locator(`[id="${id}"]`)).toHaveAttribute('data-active', '');
+  };
+  await active(root, 'One');
+  await page.keyboard.press('ArrowDown');
+  await active(root, 'Two');
+  await page.keyboard.press('End');
+  await active(root, 'Three');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#bottom-dropdown')).toBeFocused();
+  await page.locator('#right-submenu').click();
+  const parent = page.locator('[data-popright-menu]:not([data-popright-submenu])');
+  const parentId = await parent.getAttribute('aria-activedescendant');
+  await page.keyboard.press('ArrowRight');
+  const child = page.locator('[data-popright-submenu]');
+  await expect(child).toBeFocused();
+  const childId = await child.getAttribute('aria-activedescendant');
+  expect(childId).toBeTruthy();
+  expect(childId).not.toBe(parentId);
+  await expect(page.locator(`[id="${childId}"]`)).toHaveAttribute('data-active', '');
+  await page.keyboard.press('ArrowLeft');
+  await expect(parent).toBeFocused();
+  await expect(parent).toHaveAttribute('aria-activedescendant', parentId!);
+});
+
 async function gotoDemo(page: Page): Promise<void> {
   await page.goto("/");
   await page.addStyleTag({
