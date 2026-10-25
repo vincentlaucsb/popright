@@ -1,7 +1,10 @@
 import { DEFAULT_CLASSES } from "../constants.js";
 import type { MenuItem, NormalizedContextMenuOptions } from "../types.js";
-import { applyStyle, splitClasses, toCssValue, composeClass } from "../utils.js";
+import { applyStyle, splitClasses, toCssValue, composeClass, isSelectable } from "../utils.js";
 import type { MenuRootOptions } from "./types.js";
+
+// Caller item IDs may repeat. Resolve DOM identity in the actual portal tree after attachment.
+let nextItemId = 0;
 
 /** Creates the DOM root that owns keyboard, pointer, and click delegation. */
 export function createMenuRoot({
@@ -50,9 +53,20 @@ export function updateActiveDom(
   options: NormalizedContextMenuOptions
 ): void {
   const elements = root.querySelectorAll<HTMLElement>("[data-popright-item]");
+  // Focus stays on the menu root; expose the same active row to accessibility APIs.
+  root.removeAttribute("aria-activedescendant");
   for (const element of Array.from(elements)) {
+    if (!element.id) {
+      const scope = root.getRootNode() as ParentNode;
+      const scopeId = "id" in scope ? scope.id : undefined;
+      let id: string;
+      do { id = `popright-item-${++nextItemId}`; }
+      while (id === scopeId || scope.querySelector(`[id="${id}"]`));
+      element.id = id;
+    }
     const index = Number(element.dataset.index);
-    const active = index === activeIndex;
+    const active = index === activeIndex && isSelectable(items[index]);
+    if (active) root.setAttribute("aria-activedescendant", element.id);
     element.toggleAttribute("data-active", active);
     element.classList.toggle(DEFAULT_CLASSES.itemActive, active);
     if (options.classes?.itemActive) {
